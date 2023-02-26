@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -16,11 +19,16 @@ String distanceStr = "Within";
 String dateTextStr1 = "Until (Optional)";
 TextEditingController dateInput = new TextEditingController();
 TextEditingController dateInput1 = new TextEditingController();
+TextEditingController searchCntrl = new TextEditingController();
+List<Marker> instaMarkers = <Marker>[];
 final latLngProvider = StateProvider((ref) => myLatlng);
+final instaMarkersProvider = StateProvider((ref) => <Marker>[]);
 final MediaProvider = StateProvider((ref) => isMedia);
 final distanceProvider = StateProvider((ref) => distanceStr);
 final DateTextProvider1 = StateProvider((ref) => dateTextStr);
 final DateTextProvider2 = StateProvider((ref) => dateTextStr1);
+final SearchProvider = StateProvider((ref) => '');
+String instagramJson = "";
 void main() {
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -55,14 +63,50 @@ class Home extends ConsumerWidget {
     final distanceWatcher = ref.watch(distanceProvider);
     final date1Watcher = ref.watch(DateTextProvider1);
     final date2Watcher = ref.watch(DateTextProvider2);
+    final searchWatcher = ref.watch(SearchProvider);
+    final instaMarkerWatcher = ref.watch(instaMarkersProvider);
     return Material(
       child: Stack(
+        alignment: Alignment.topCenter,
         children: [
           getMap(ref),
+          Column(
+            children: [
+              Container(
+                height: 25,
+              ),
+              Container(
+                alignment: Alignment.topCenter,
+                width: MediaQuery.of(context).size.width * 0.6,
+                height: MediaQuery.of(context).size.width * 0.025,
+                child: PointerInterceptor(
+                    child: Align(
+                  alignment: Alignment.center,
+                  child: Container(
+                      child: TextField(
+                    controller: null,
+                    onChanged: (value) {
+                      ref.read(SearchProvider.notifier).state = value;
+                    },
+                    decoration: InputDecoration(
+                      fillColor: Colors.white,
+                      hintText: 'Search for tags, words ...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                  )),
+                )),
+              ),
+            ],
+          ),
           Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                height: MediaQuery.of(context).size.width * 0.065,
+              ),
               Container(
                 height: 2,
               ),
@@ -238,9 +282,16 @@ class Home extends ConsumerWidget {
                     child: FloatingActionButton(
                   onPressed: () async {
                     String tags = "";
+                    String near = "near:";
+                    bool tagSet = false;
+                    if (searchWatcher != "" && searchWatcher != null) {
+                      tags = searchWatcher;
+                      near = " near:";
+                    }
+
                     String url = "https://twitter.com/search?q=" +
                         tags +
-                        "near:" +
+                        near +
                         LatLngWatcher.lat.toString() +
                         "," +
                         LatLngWatcher.lng.toString();
@@ -285,6 +336,26 @@ class Home extends ConsumerWidget {
                   },
                   backgroundColor: Colors.yellow,
                   child: const FaIcon(FontAwesomeIcons.snapchat),
+                )),
+                Container(
+                  width: 2,
+                ),
+                PointerInterceptor(
+                    child: FloatingActionButton(
+                  onPressed: () async {
+                    String url =
+                        "https://www.instagram.com/location_search/?latitude=" +
+                            LatLngWatcher.lat.toString() +
+                            "&longitude=" +
+                            LatLngWatcher.lng.toString();
+                    _showDialog(context, ref, url);
+                    String tags = "";
+
+                    //await launchUrl(Uri.parse(url));
+                    print("clicked");
+                  },
+                  backgroundColor: Colors.pinkAccent,
+                  child: const FaIcon(FontAwesomeIcons.instagram),
                 ))
               ],
             ),
@@ -295,27 +366,26 @@ class Home extends ConsumerWidget {
   }
 }
 
-Widget getMap(WidgetRef ref) {
-  String htmlId = "7";
+final mapOptions = new MapOptions()
+  ..zoom = 8
+  ..center = myLatlng;
 
+String htmlId = "7";
+
+final elem = DivElement()
+  ..id = htmlId
+  ..style.width = "100%"
+  ..style.height = "100%"
+  ..style.border = 'none';
+final map = GMap(elem, mapOptions);
+
+Marker marker = Marker(MarkerOptions()
+  ..position = myLatlng
+  ..map = map
+  ..title = 'Hello World!');
+Widget getMap(WidgetRef ref) {
   // ignore: undefined_prefixed_name
   ui.platformViewRegistry.registerViewFactory(htmlId, (int viewId) {
-    final mapOptions = new MapOptions()
-      ..zoom = 8
-      ..center = myLatlng;
-
-    final elem = DivElement()
-      ..id = htmlId
-      ..style.width = "100%"
-      ..style.height = "100%"
-      ..style.border = 'none';
-
-    final map = GMap(elem, mapOptions);
-
-    Marker marker = Marker(MarkerOptions()
-      ..position = myLatlng
-      ..map = map
-      ..title = 'Hello World!');
     map.onClick.listen((mapsMouseEvent) {
       myLatlng = mapsMouseEvent.latLng!;
       ref.read(latLngProvider.notifier).state = mapsMouseEvent.latLng!;
@@ -335,4 +405,136 @@ Future<void> _launchInBrowser(Uri url) async {
   )) {
     throw Exception('Could not launch $url');
   }
+}
+
+Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
+  return showDialog(
+      context: context,
+      builder: (builder) {
+        return PointerInterceptor(
+          child: AlertDialog(
+            contentPadding: EdgeInsets.zero,
+            title: Text('Instagram Nearby Search'),
+            content: Container(
+                margin: EdgeInsets.all(5),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("1. You need to be signed in to instagram"),
+                    Text("2. Click instagram icon to open instagram."),
+                    Text(
+                        "3. Copy the json text from the instagram page opened in new tab."),
+                    Text("3. Click the Below Paste Button."),
+                    Text("4. Click Generate Markers"),
+                    Container(
+                      height: 5,
+                    ),
+                    Row(
+                      children: [
+                        ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              primary: Colors.redAccent,
+                            ),
+                            onPressed: () async {
+                              await _launchInBrowser(Uri.parse(url));
+                            },
+                            child: FaIcon(FontAwesomeIcons.instagram)),
+                        Container(
+                          width: 2,
+                        ),
+                        ElevatedButton(
+                            onPressed: () {
+                              FlutterClipboard.paste().then((value) {
+                                // Do what ever you want with the value.
+                                instagramJson = value;
+                                print(instagramJson);
+                              });
+                            },
+                            child: Text("Paste")),
+                        Container(
+                          width: 2,
+                        ),
+                        ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              primary: Colors.greenAccent,
+                            ),
+                            onPressed: () {
+                              instaMarkers.clear();
+                              dynamic data = jsonDecode(instagramJson);
+                              if (data["status"] == "ok") {
+                                List<dynamic> venues = data["venues"];
+                                for (dynamic venue in venues) {
+                                  double? lat = venue["lat"];
+                                  double? lng = venue["lng"];
+                                  if (lat != null && lng != null) {
+                                    LatLng instaLatLng = LatLng(lat, lng);
+                                    String title = "";
+                                    String markerUrl = "";
+                                    if (venue["external_id_source"] ==
+                                        "facebook_places") {
+                                      markerUrl =
+                                          "https://www.instagram.com/explore/locations/" +
+                                              venue["external_id"].toString() +
+                                              "/";
+                                      Marker instaMarker =
+                                          new Marker(MarkerOptions()
+                                            ..position = instaLatLng
+                                            ..icon =
+                                                "http://maps.google.com/mapfiles/ms/icons/pink-pushpin.png"
+                                            ..map = map);
+                                      instaMarker.onClick.listen((event) async {
+                                        await _launchInBrowser(
+                                            Uri.parse(markerUrl));
+                                      });
+                                      instaMarker.set("url", markerUrl);
+
+                                      String venueName = venue["name"] != null
+                                          ? venue["name"]
+                                          : "";
+                                      String venueAddress =
+                                          venue["address"] != null
+                                              ? venue["address"]
+                                              : "";
+                                      instaMarker.title =
+                                          venueName + "\n\n" + venueAddress;
+                                      instaMarkers.add(instaMarker);
+                                    }
+                                  }
+                                }
+                              }
+                              Navigator.of(context).maybePop();
+                            },
+                            child: Text("Generate Markers")),
+                        Container(
+                          width: 2,
+                        ),
+                        ElevatedButton(
+                            onPressed: () {
+                              for (Marker m in instaMarkers) {
+                                m.map = null;
+                              }
+                              instaMarkers.clear();
+                              //instaMarkers.length = 0;
+                              Navigator.of(context).maybePop();
+                            },
+                            child: Text("Clear Markers"))
+                      ],
+                    ),
+                    Container(
+                      height: 20,
+                    ),
+                    ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.redAccent,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).maybePop();
+                        },
+                        child: Text("Close"))
+                  ],
+                )),
+          ),
+        );
+      });
 }
