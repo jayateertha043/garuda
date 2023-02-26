@@ -299,7 +299,7 @@ if (int.tryParse(distanceWatcher) != null) {
                       if (int.parse(distanceWatcher) > 0) {
                         url = url + "," + distanceWatcher + "km";
                       }else{
-url = url + "," + 5 + "km";
+url = url + "," + "5" + "km";
 }
                     }
                     if (isMediaWatcher) {
