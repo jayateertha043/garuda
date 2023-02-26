@@ -301,7 +301,9 @@ if (int.tryParse(distanceWatcher) != null) {
                       }else{
 url = url + "," + "5" + "km";
 }
-                    }
+                    }else{
+url = url + "," + "5" + "km";
+}
                     if (isMediaWatcher) {
                       url = url + " filter:media";
                     }
