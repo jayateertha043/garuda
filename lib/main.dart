@@ -282,11 +282,11 @@ class Home extends ConsumerWidget {
                     child: FloatingActionButton(
                   onPressed: () async {
                     String tags = "";
-                    String near = "near:";
+                    String near = "geocode:";
                     bool tagSet = false;
                     if (searchWatcher != "" && searchWatcher != null) {
                       tags = searchWatcher;
-                      near = " near:";
+                      near = " geocode:";
                     }
 
                     String url = "https://twitter.com/search?q=" +
@@ -295,6 +295,13 @@ class Home extends ConsumerWidget {
                         LatLngWatcher.lat.toString() +
                         "," +
                         LatLngWatcher.lng.toString();
+if (int.tryParse(distanceWatcher) != null) {
+                      if (int.parse(distanceWatcher) > 0) {
+                        url = url + "," + distanceWatcher + "km";
+                      }else{
+url = url + "," + 5 + "km";
+}
+                    }
                     if (isMediaWatcher) {
                       url = url + " filter:media";
                     }
@@ -308,11 +315,7 @@ class Home extends ConsumerWidget {
                           " until:" +
                           ref.read(DateTextProvider2.notifier).state;
                     }
-                    if (int.tryParse(distanceWatcher) != null) {
-                      if (int.parse(distanceWatcher) > 0) {
-                        url = url + " within:" + distanceWatcher + "km";
-                      }
-                    }
+                    
                     await launchUrl(Uri.parse(url));
                     print("clicked");
                   },
