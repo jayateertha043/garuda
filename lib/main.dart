@@ -4,7 +4,6 @@ import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_maps_flutter_web/google_maps_flutter_web.dart';
 import 'package:google_maps/google_maps.dart';
 import 'dart:ui' as ui;
 import 'dart:html';
@@ -13,18 +12,24 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:velocity_x/velocity_x.dart';
 
-LatLng myLatlng = new LatLng(13.0827, 80.2707);
-bool isMedia = false;
+//Global Variables
 String dateTextStr = "Since (Optional)";
 String distanceStr = "Within";
 String dateTextStr1 = "Until (Optional)";
+String instagramJson = "";
+LatLng myLatlng = new LatLng(13.0827, 80.2707);
+bool isMedia = false;
+List<Marker> instaMarkers = <Marker>[];
+
+//Text Editing Contollers
 TextEditingController dateInput = new TextEditingController();
 TextEditingController dateInput1 = new TextEditingController();
 TextEditingController searchCntrl = new TextEditingController();
 TextEditingController latControl = new TextEditingController();
 TextEditingController lngControl = new TextEditingController();
 TextEditingController distControl = new TextEditingController();
-List<Marker> instaMarkers = <Marker>[];
+
+//States
 final latLngProvider = StateProvider((ref) => myLatlng);
 final instaMarkersProvider = StateProvider((ref) => <Marker>[]);
 final MediaProvider = StateProvider((ref) => isMedia);
@@ -32,7 +37,7 @@ final distanceProvider = StateProvider((ref) => distanceStr);
 final DateTextProvider1 = StateProvider((ref) => dateTextStr);
 final DateTextProvider2 = StateProvider((ref) => dateTextStr1);
 final SearchProvider = StateProvider((ref) => '');
-String instagramJson = "";
+
 void main() {
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -52,23 +57,23 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class Home extends ConsumerWidget {
+class Home extends StatefulWidget {
   const Home({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final LatLngWatcher = ref.watch(latLngProvider);
-    final isMediaWatcher = ref.watch(MediaProvider);
-    final distanceWatcher = ref.watch(distanceProvider);
-    final date1Watcher = ref.watch(DateTextProvider1);
-    final date2Watcher = ref.watch(DateTextProvider2);
-    final searchWatcher = ref.watch(SearchProvider);
-    final instaMarkerWatcher = ref.watch(instaMarkersProvider);
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  @override
+  Widget build(BuildContext context) {
     return Material(
       child: Stack(
         //alignment: Alignment.topCenter,
         children: [
-          getMap(ref),
+          Consumer(builder: (context, ref, child) {
+            return getMap(ref);
+          }),
           Column(
             //mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -84,19 +89,22 @@ class Home extends ConsumerWidget {
                 child: PointerInterceptor(
                     child: Align(
                   alignment: Alignment.center,
-                  child: Container(
-                      child: TextField(
-                    controller: null,
-                    onChanged: (value) {
-                      ref.read(SearchProvider.notifier).state = value;
+                  child: Container(child: Consumer(
+                    builder: (context, ref, child) {
+                      return TextField(
+                        controller: null,
+                        onChanged: (value) {
+                          ref.read(SearchProvider.notifier).state = value;
+                        },
+                        decoration: InputDecoration(
+                          fillColor: Colors.white,
+                          hintText: 'Search for tags, words ...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                        ),
+                      );
                     },
-                    decoration: InputDecoration(
-                      fillColor: Colors.white,
-                      hintText: 'Search for tags, words ...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                    ),
                   )),
                 )),
               ),
@@ -109,7 +117,7 @@ class Home extends ConsumerWidget {
               Container(
                 height: context.isMobile
                     ? MediaQuery.of(context).size.height * 0.13
-                    : MediaQuery.of(context).size.height * 0.05,
+                    : MediaQuery.of(context).size.height * 0.2,
               ),
               Container(
                 height: 2,
@@ -122,21 +130,27 @@ class Home extends ConsumerWidget {
                       height: context.isMobile
                           ? MediaQuery.of(context).size.height * 0.04
                           : MediaQuery.of(context).size.height * 0.04,
-                      child: TextField(
-                        controller: latControl,
-                        onChanged: (value) {
-                          num newLat = double.parse(value);
-                          num oldLng = LatLngWatcher.lng;
-                          LatLng newLatLng = new LatLng(newLat, oldLng);
-                          ref.read(latLngProvider.notifier).state = newLatLng;
+                      child: Consumer(
+                        builder: (context, ref, child) {
+                          final LatLngWatcher = ref.watch(latLngProvider);
+                          return TextField(
+                            controller: latControl,
+                            onChanged: (value) {
+                              num newLat = double.parse(value);
+                              num oldLng = LatLngWatcher.lng;
+                              LatLng newLatLng = new LatLng(newLat, oldLng);
+                              ref.read(latLngProvider.notifier).state =
+                                  newLatLng;
+                            },
+                            decoration: InputDecoration(
+                              fillColor: Colors.white,
+                              hintText: LatLngWatcher.lat.toString(),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                            ),
+                          );
                         },
-                        decoration: InputDecoration(
-                          fillColor: Colors.white,
-                          hintText: LatLngWatcher.lat.toString(),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                        ),
                       ))),
               Container(
                 height: 2,
@@ -149,31 +163,41 @@ class Home extends ConsumerWidget {
                       height: context.isMobile
                           ? MediaQuery.of(context).size.height * 0.04
                           : MediaQuery.of(context).size.height * 0.04,
-                      child: TextField(
-                        controller: lngControl,
-                        onChanged: (value) {
-                          num newLng = double.parse(value);
-                          num oldLat = LatLngWatcher.lat;
-                          LatLng newLatLng = new LatLng(oldLat, newLng);
-                          ref.read(latLngProvider.notifier).state = newLatLng;
+                      child: Consumer(
+                        builder: (context, ref, child) {
+                          final LatLngWatcher = ref.watch(latLngProvider);
+                          return TextField(
+                            controller: lngControl,
+                            onChanged: (value) {
+                              num newLng = double.parse(value);
+                              num oldLat = LatLngWatcher.lat;
+                              LatLng newLatLng = new LatLng(oldLat, newLng);
+                              ref.read(latLngProvider.notifier).state =
+                                  newLatLng;
+                            },
+                            decoration: InputDecoration(
+                              hintText: LatLngWatcher.lng.toString(),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                            ),
+                          );
                         },
-                        decoration: InputDecoration(
-                          hintText: LatLngWatcher.lng.toString(),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                        ),
                       ))),
               Container(
                 height: 2,
               ),
               Row(
                 children: [
-                  PointerInterceptor(
-                      child: Checkbox(
-                    value: isMediaWatcher,
-                    onChanged: (bool? value) {
-                      ref.read(MediaProvider.notifier).state = value!;
+                  PointerInterceptor(child: Consumer(
+                    builder: (context, ref, child) {
+                      final isMediaWatcher = ref.watch(MediaProvider);
+                      return Checkbox(
+                        value: isMediaWatcher,
+                        onChanged: (bool? value) {
+                          ref.read(MediaProvider.notifier).state = value!;
+                        },
+                      );
                     },
                   )),
                   Text(
@@ -193,32 +217,38 @@ class Home extends ConsumerWidget {
                     height: context.isMobile
                         ? MediaQuery.of(context).size.height * 0.04
                         : MediaQuery.of(context).size.height * 0.04,
-                    child: TextField(
-                        keyboardType: TextInputType.datetime,
-                        controller: dateInput,
-                        decoration: InputDecoration(
-                            hintText: DateTime.tryParse(date1Watcher) == null
-                                ? "Since (Optional)"
-                                : date1Watcher.substring(0, 10),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                            )),
-                        onTap: () async {
-                          DateTime? pickedDate = await showDatePicker(
-                              builder: (ctx, child) =>
-                                  PointerInterceptor(child: child!),
-                              context: context,
-                              initialDate: DateTime.now(),
-                              firstDate: DateTime(
-                                  2000), //DateTime.now() - not to allow to choose before today.
-                              lastDate: DateTime(2101));
-                          ref.read(DateTextProvider1.notifier).state = "";
-                          ref.read(DateTextProvider1.notifier).state =
-                              pickedDate.toString().substring(0, 10);
-                          print(pickedDate);
-                          print(date1Watcher);
-                          ;
-                        }),
+                    child: Consumer(
+                      builder: (context, ref, child) {
+                        final date1Watcher = ref.watch(DateTextProvider1);
+                        return TextField(
+                            keyboardType: TextInputType.datetime,
+                            controller: dateInput,
+                            decoration: InputDecoration(
+                                hintText:
+                                    DateTime.tryParse(date1Watcher) == null
+                                        ? "Since (Optional)"
+                                        : date1Watcher.substring(0, 10),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                )),
+                            onTap: () async {
+                              DateTime? pickedDate = await showDatePicker(
+                                  builder: (ctx, child) =>
+                                      PointerInterceptor(child: child!),
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(
+                                      2000), //DateTime.now() - not to allow to choose before today.
+                                  lastDate: DateTime(2101));
+                              ref.read(DateTextProvider1.notifier).state = "";
+                              ref.read(DateTextProvider1.notifier).state =
+                                  pickedDate.toString().substring(0, 10);
+                              print(pickedDate);
+                              print(date1Watcher);
+                              ;
+                            });
+                      },
+                    ),
                   ),
                   Container(
                     width: 1,
@@ -231,30 +261,36 @@ class Home extends ConsumerWidget {
                     height: context.isMobile
                         ? MediaQuery.of(context).size.height * 0.04
                         : MediaQuery.of(context).size.height * 0.04,
-                    child: TextField(
-                        keyboardType: TextInputType.datetime,
-                        controller: dateInput1,
-                        decoration: InputDecoration(
-                            hintText: DateTime.tryParse(date2Watcher) == null
-                                ? "Until (Optional)"
-                                : date2Watcher.substring(0, 10),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                            )),
-                        onTap: () async {
-                          DateTime? pickedDate = await showDatePicker(
-                              builder: (ctx, child) =>
-                                  PointerInterceptor(child: child!),
-                              context: context,
-                              initialDate: DateTime.now(),
-                              firstDate: DateTime(
-                                  2000), //DateTime.now() - not to allow to choose before today.
-                              lastDate: DateTime(2101));
-                          ref.read(DateTextProvider2.notifier).state =
-                              pickedDate.toString().substring(0, 10);
-                          print(pickedDate);
-                          print(date2Watcher);
-                        }),
+                    child: Consumer(
+                      builder: (context, ref, child) {
+                        final date2Watcher = ref.watch(DateTextProvider2);
+                        return TextField(
+                            keyboardType: TextInputType.datetime,
+                            controller: dateInput1,
+                            decoration: InputDecoration(
+                                hintText:
+                                    DateTime.tryParse(date2Watcher) == null
+                                        ? "Until (Optional)"
+                                        : date2Watcher.substring(0, 10),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                )),
+                            onTap: () async {
+                              DateTime? pickedDate = await showDatePicker(
+                                  builder: (ctx, child) =>
+                                      PointerInterceptor(child: child!),
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(
+                                      2000), //DateTime.now() - not to allow to choose before today.
+                                  lastDate: DateTime(2101));
+                              ref.read(DateTextProvider2.notifier).state =
+                                  pickedDate.toString().substring(0, 10);
+                              print(pickedDate);
+                              print(date2Watcher);
+                            });
+                      },
+                    ),
                   )),
                   Container(
                     width: 1,
@@ -272,123 +308,136 @@ class Home extends ConsumerWidget {
                 height: context.isMobile
                     ? MediaQuery.of(context).size.height * 0.04
                     : MediaQuery.of(context).size.height * 0.04,
-                child: TextField(
-                  controller: distControl,
-                  onChanged: (value) {
-                    ref.read(distanceProvider.notifier).state = "";
-                    ref.read(distanceProvider.notifier).state =
-                        int.tryParse(value) == null
-                            ? ""
-                            : int.parse(value) > 0
-                                ? value
-                                : "5";
+                child: Consumer(
+                  builder: (context, ref, child) {
+                    final distanceWatcher = ref.watch(distanceProvider);
+                    return TextField(
+                      controller: distControl,
+                      onChanged: (value) {
+                        ref.read(distanceProvider.notifier).state = "";
+                        ref.read(distanceProvider.notifier).state =
+                            int.tryParse(value) == null
+                                ? ""
+                                : int.parse(value) > 0
+                                    ? value
+                                    : "5";
+                      },
+                      decoration: InputDecoration(
+                          suffix: Text("(km)"),
+                          hintText: int.tryParse(distanceWatcher) == null &&
+                                  distanceWatcher != distanceStr
+                              ? distanceWatcher
+                              : distanceStr,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          )),
+                    );
                   },
-                  decoration: InputDecoration(
-                      suffix: Text("(km)"),
-                      hintText: int.tryParse(distanceWatcher) == null &&
-                              distanceWatcher != distanceStr
-                          ? distanceWatcher
-                          : distanceStr,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      )),
                 ),
               ))
             ],
           ),
           Align(
-            alignment: Alignment.bottomCenter,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                PointerInterceptor(
-                    child: FloatingActionButton(
-                  onPressed: () async {
-                    String tags = "";
-                    String near = "geocode:";
-                    bool tagSet = false;
-                    if (searchWatcher != "" && searchWatcher != null) {
-                      tags = searchWatcher;
-                      near = " geocode:";
-                    }
+              alignment: Alignment.bottomCenter,
+              child: Consumer(builder: (context, ref, child) {
+                final LatLngWatcher = ref.watch(latLngProvider);
+                final isMediaWatcher = ref.watch(MediaProvider);
+                final distanceWatcher = ref.watch(distanceProvider);
+                final date1Watcher = ref.watch(DateTextProvider1);
+                final date2Watcher = ref.watch(DateTextProvider2);
+                final searchWatcher = ref.watch(SearchProvider);
+                final instaMarkerWatcher = ref.watch(instaMarkersProvider);
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    PointerInterceptor(
+                        child: FloatingActionButton(
+                      onPressed: () async {
+                        String tags = "";
+                        String near = "geocode:";
+                        bool tagSet = false;
+                        if (searchWatcher != "" && searchWatcher != null) {
+                          tags = searchWatcher;
+                          near = " geocode:";
+                        }
 
-                    String url = "https://twitter.com/search?q=" +
-                        tags +
-                        near +
-                        LatLngWatcher.lat.toString() +
-                        "," +
-                        LatLngWatcher.lng.toString();
-                    if (int.tryParse(distanceWatcher) != null) {
-                      if (int.parse(distanceWatcher) > 0) {
-                        url = url + "," + distanceWatcher + "km";
-                      } else {
-                        url = url + "," + "5" + "km";
-                      }
-                    } else {
-                      url = url + "," + "5" + "km";
-                    }
-                    if (isMediaWatcher) {
-                      url = url + " filter:media";
-                    }
-                    if (DateTime.tryParse(date1Watcher) != null) {
-                      url = url +
-                          " since:" +
-                          ref.read(DateTextProvider1.notifier).state;
-                    }
-                    if (DateTime.tryParse(date2Watcher) != null) {
-                      url = url +
-                          " until:" +
-                          ref.read(DateTextProvider2.notifier).state;
-                    }
-
-                    await launchUrl(Uri.parse(url));
-                    print("clicked");
-                  },
-                  backgroundColor: Colors.blue,
-                  child: const FaIcon(FontAwesomeIcons.twitter),
-                )),
-                Container(
-                  width: 5,
-                ),
-                PointerInterceptor(
-                    child: FloatingActionButton(
-                  onPressed: () async {
-                    String tags = "";
-                    String url = "https://map.snapchat.com/@" +
-                        LatLngWatcher.lat.toString() +
-                        "," +
-                        LatLngWatcher.lng.toString() +
-                        ",15z";
-                    await launchUrl(Uri.parse(url));
-                    print("clicked");
-                  },
-                  backgroundColor: Colors.yellow,
-                  child: const FaIcon(FontAwesomeIcons.snapchat),
-                )),
-                Container(
-                  width: 5,
-                ),
-                PointerInterceptor(
-                    child: FloatingActionButton(
-                  onPressed: () async {
-                    String url =
-                        "https://www.instagram.com/location_search/?latitude=" +
+                        String url = "https://twitter.com/search?q=" +
+                            tags +
+                            near +
                             LatLngWatcher.lat.toString() +
-                            "&longitude=" +
+                            "," +
                             LatLngWatcher.lng.toString();
-                    _showDialog(context, ref, url);
-                    String tags = "";
+                        if (int.tryParse(distanceWatcher) != null) {
+                          if (int.parse(distanceWatcher) > 0) {
+                            url = url + "," + distanceWatcher + "km";
+                          } else {
+                            url = url + "," + "5" + "km";
+                          }
+                        } else {
+                          url = url + "," + "5" + "km";
+                        }
+                        if (isMediaWatcher) {
+                          url = url + " filter:media";
+                        }
+                        if (DateTime.tryParse(date1Watcher) != null) {
+                          url = url +
+                              " since:" +
+                              ref.read(DateTextProvider1.notifier).state;
+                        }
+                        if (DateTime.tryParse(date2Watcher) != null) {
+                          url = url +
+                              " until:" +
+                              ref.read(DateTextProvider2.notifier).state;
+                        }
 
-                    //await launchUrl(Uri.parse(url));
-                    print("clicked");
-                  },
-                  backgroundColor: Colors.pinkAccent,
-                  child: const FaIcon(FontAwesomeIcons.instagram),
-                ))
-              ],
-            ),
-          )
+                        await launchUrl(Uri.parse(url));
+                        print("clicked");
+                      },
+                      backgroundColor: Colors.blue,
+                      child: const FaIcon(FontAwesomeIcons.twitter),
+                    )),
+                    Container(
+                      width: 5,
+                    ),
+                    PointerInterceptor(
+                        child: FloatingActionButton(
+                      onPressed: () async {
+                        String tags = "";
+                        String url = "https://map.snapchat.com/@" +
+                            LatLngWatcher.lat.toString() +
+                            "," +
+                            LatLngWatcher.lng.toString() +
+                            ",15z";
+                        await launchUrl(Uri.parse(url));
+                        print("clicked");
+                      },
+                      backgroundColor: Colors.yellow,
+                      child: const FaIcon(FontAwesomeIcons.snapchat),
+                    )),
+                    Container(
+                      width: 5,
+                    ),
+                    PointerInterceptor(
+                        child: FloatingActionButton(
+                      onPressed: () async {
+                        String url =
+                            "https://www.instagram.com/location_search/?latitude=" +
+                                LatLngWatcher.lat.toString() +
+                                "&longitude=" +
+                                LatLngWatcher.lng.toString();
+                        _showDialog(context, ref, url);
+                        String tags = "";
+
+                        //await launchUrl(Uri.parse(url));
+                        print("clicked");
+                      },
+                      backgroundColor: Colors.pinkAccent,
+                      child: const FaIcon(FontAwesomeIcons.instagram),
+                    ))
+                  ],
+                );
+              }))
         ],
       ),
     );
