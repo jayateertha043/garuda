@@ -48,6 +48,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Garuda',
+      debugShowCheckedModeBanner: false,
+      // darkTheme: ThemeData.dark(),
       theme: ThemeData(
           primarySwatch: Colors.blue,
           inputDecorationTheme: InputDecorationTheme(
