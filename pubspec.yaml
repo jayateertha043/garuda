@@ -39,7 +39,7 @@ dependencies:
   pointer_interceptor: ^0.9.3+4
   font_awesome_flutter: ^10.4.0
   url_launcher: ^6.1.10
-  intl: ^0.18.0
+  velocity_x: ^3.3.0
   clipboard: ^0.1.3
 
 
