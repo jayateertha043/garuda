@@ -11,7 +11,6 @@ import 'dart:html';
 import 'package:intl/intl.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:velocity_x/velocity_x.dart';
 
 LatLng myLatlng = new LatLng(13.0827, 80.2707);
 bool isMedia = false;
@@ -21,9 +20,6 @@ String dateTextStr1 = "Until (Optional)";
 TextEditingController dateInput = new TextEditingController();
 TextEditingController dateInput1 = new TextEditingController();
 TextEditingController searchCntrl = new TextEditingController();
-final latControl = new TextEditingController();
-final lngControl = new TextEditingController();
-final distControl = new TextEditingController();
 List<Marker> instaMarkers = <Marker>[];
 final latLngProvider = StateProvider((ref) => myLatlng);
 final instaMarkersProvider = StateProvider((ref) => <Marker>[]);
@@ -52,6 +48,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
+final latControl = new TextEditingController();
+
+final lngControl = new TextEditingController();
+final distControl = new TextEditingController();
+
 class Home extends ConsumerWidget {
   const Home({super.key});
 
@@ -69,8 +70,7 @@ class Home extends ConsumerWidget {
         alignment: Alignment.topCenter,
         children: [
           getMap(ref),
-          Wrap(
-            alignment: WrapAlignment.center,
+          Column(
             children: [
               Container(
                 height: 25,
@@ -78,9 +78,7 @@ class Home extends ConsumerWidget {
               Container(
                 alignment: Alignment.topCenter,
                 width: MediaQuery.of(context).size.width * 0.6,
-                height: context.isMobile
-                    ? MediaQuery.of(context).size.width * 0.10
-                    : MediaQuery.of(context).size.width * 0.025,
+                height: MediaQuery.of(context).size.width * 0.025,
                 child: PointerInterceptor(
                     child: Align(
                   alignment: Alignment.center,
@@ -103,29 +101,19 @@ class Home extends ConsumerWidget {
             ],
           ),
           Column(
-            //direction: Axis.vertical,
-            //alignment: WrapAlignment.start,
-            //runAlignment: WrapAlignment.start,
-            //crossAxisAlignment: WrapCrossAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                height: context.isMobile
-                    ? MediaQuery.of(context).size.height * 0.15
-                    : MediaQuery.of(context).size.height * 0.065,
+                height: MediaQuery.of(context).size.width * 0.065,
               ),
               Container(
                 height: 2,
               ),
               PointerInterceptor(
                   child: Container(
-                      width: context.isMobile
-                          ? MediaQuery.of(context).size.width * 0.3
-                          : MediaQuery.of(context).size.width * 0.1,
-                      height: context.isMobile
-                          ? MediaQuery.of(context).size.height * 0.07
-                          : MediaQuery.of(context).size.height * 0.025,
+                      width: MediaQuery.of(context).size.width * 0.1,
+                      height: MediaQuery.of(context).size.width * 0.025,
                       child: TextField(
                         controller: latControl,
                         onChanged: (value) {
@@ -147,12 +135,8 @@ class Home extends ConsumerWidget {
               ),
               PointerInterceptor(
                   child: Container(
-                      width: context.isMobile
-                          ? MediaQuery.of(context).size.width * 0.3
-                          : MediaQuery.of(context).size.width * 0.1,
-                      height: context.isMobile
-                          ? MediaQuery.of(context).size.height * 0.07
-                          : MediaQuery.of(context).size.height * 0.025,
+                      width: MediaQuery.of(context).size.width * 0.1,
+                      height: MediaQuery.of(context).size.width * 0.025,
                       child: TextField(
                         controller: lngControl,
                         onChanged: (value) {
@@ -171,42 +155,28 @@ class Home extends ConsumerWidget {
               Container(
                 height: 2,
               ),
-              Container(
-                width: context.isMobile
-                    ? MediaQuery.of(context).size.width * 0.3
-                    : MediaQuery.of(context).size.width * 0.1,
-                height: context.isMobile
-                    ? MediaQuery.of(context).size.height * 0.1
-                    : MediaQuery.of(context).size.height * 0.025,
-                child: Row(
-                  children: [
-                    PointerInterceptor(
-                        child: Checkbox(
-                      value: isMediaWatcher,
-                      onChanged: (bool? value) {
-                        ref.read(MediaProvider.notifier).state = value!;
-                      },
-                    )),
-                    Text(
-                      "Media",
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
-                    )
-                  ],
-                ),
+              Row(
+                children: [
+                  PointerInterceptor(
+                      child: Checkbox(
+                    value: isMediaWatcher,
+                    onChanged: (bool? value) {
+                      ref.read(MediaProvider.notifier).state = value!;
+                    },
+                  )),
+                  Text(
+                    "Media",
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  )
+                ],
               ),
               PointerInterceptor(
                   child: Row(
-                // crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Container(
-                    width: context.isMobile
-                        ? MediaQuery.of(context).size.width * 0.3
-                        : MediaQuery.of(context).size.width * 0.1,
-                    height: context.isMobile
-                        ? MediaQuery.of(context).size.height * 0.07
-                        : MediaQuery.of(context).size.height * 0.025,
+                    width: MediaQuery.of(context).size.width * 0.1,
+                    height: MediaQuery.of(context).size.width * 0.025,
                     child: TextField(
                         keyboardType: TextInputType.datetime,
                         controller: dateInput,
@@ -239,12 +209,8 @@ class Home extends ConsumerWidget {
                   ),
                   PointerInterceptor(
                       child: Container(
-                    width: context.isMobile
-                        ? MediaQuery.of(context).size.width * 0.3
-                        : MediaQuery.of(context).size.width * 0.1,
-                    height: context.isMobile
-                        ? MediaQuery.of(context).size.height * 0.07
-                        : MediaQuery.of(context).size.height * 0.025,
+                    width: MediaQuery.of(context).size.width * 0.1,
+                    height: MediaQuery.of(context).size.width * 0.025,
                     child: TextField(
                         keyboardType: TextInputType.datetime,
                         controller: dateInput1,
@@ -280,12 +246,8 @@ class Home extends ConsumerWidget {
               ),
               PointerInterceptor(
                   child: Container(
-                width: context.isMobile
-                    ? MediaQuery.of(context).size.width * 0.3
-                    : MediaQuery.of(context).size.width * 0.1,
-                height: context.isMobile
-                    ? MediaQuery.of(context).size.height * 0.07
-                    : MediaQuery.of(context).size.height * 0.025,
+                width: MediaQuery.of(context).size.width * 0.1,
+                height: MediaQuery.of(context).size.width * 0.025,
                 child: TextField(
                   controller: distControl,
                   onChanged: (value) {
@@ -473,7 +435,7 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
                     Container(
                       height: 5,
                     ),
-                    Wrap(
+                    Row(
                       children: [
                         ElevatedButton(
                             style: ElevatedButton.styleFrom(
