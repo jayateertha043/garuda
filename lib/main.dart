@@ -59,8 +59,10 @@ class MyApp extends StatelessWidget {
               fontWeight: FontWeight.bold), // default TextField input style
         ),
         inputDecorationTheme: InputDecorationTheme(
-          //fillColor: Colors.grey,
-          //filled: true,
+          contentPadding: EdgeInsets.only(top: 2),
+          isCollapsed: true,
+          fillColor: Colors.white12,
+          filled: true,
           hintStyle: TextStyle(
               fontSize: 12,
               color: Colors.orangeAccent,
@@ -94,7 +96,7 @@ class _HomeState extends State<Home> {
             //mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                height: context.isMobile ? 50 : 25,
+                height: context.isMobile ? 55 : 25,
               ),
               Container(
                 alignment: Alignment.topCenter,
@@ -109,6 +111,7 @@ class _HomeState extends State<Home> {
                     builder: (context, ref, child) {
                       return TextField(
                         textAlign: TextAlign.center,
+                        textAlignVertical: TextAlignVertical.center,
                         controller: null,
                         onChanged: (value) {
                           ref.read(SearchProvider.notifier).state = value;
@@ -152,6 +155,7 @@ class _HomeState extends State<Home> {
                           final LatLngWatcher = ref.watch(latLngProvider);
                           return TextField(
                             textAlign: TextAlign.center,
+                            textAlignVertical: TextAlignVertical.center,
                             controller: latControl,
                             onChanged: (value) {
                               num newLat = double.parse(value);
@@ -186,6 +190,7 @@ class _HomeState extends State<Home> {
                           final LatLngWatcher = ref.watch(latLngProvider);
                           return TextField(
                             textAlign: TextAlign.center,
+                            textAlignVertical: TextAlignVertical.center,
                             controller: lngControl,
                             onChanged: (value) {
                               num newLng = double.parse(value);
@@ -241,6 +246,7 @@ class _HomeState extends State<Home> {
                         final date1Watcher = ref.watch(DateTextProvider1);
                         return TextField(
                             textAlign: TextAlign.center,
+                            textAlignVertical: TextAlignVertical.center,
                             keyboardType: TextInputType.datetime,
                             controller: dateInput,
                             decoration: InputDecoration(
@@ -285,6 +291,8 @@ class _HomeState extends State<Home> {
                       builder: (context, ref, child) {
                         final date2Watcher = ref.watch(DateTextProvider2);
                         return TextField(
+                            textAlign: TextAlign.center,
+                            textAlignVertical: TextAlignVertical.center,
                             keyboardType: TextInputType.datetime,
                             controller: dateInput1,
                             decoration: InputDecoration(
@@ -333,6 +341,7 @@ class _HomeState extends State<Home> {
                     final distanceWatcher = ref.watch(distanceProvider);
                     return TextField(
                       textAlign: TextAlign.center,
+                      textAlignVertical: TextAlignVertical.center,
                       controller: distControl,
                       onChanged: (value) {
                         ref.read(distanceProvider.notifier).state = "";
