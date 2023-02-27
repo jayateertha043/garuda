@@ -51,15 +51,23 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       // darkTheme: ThemeData.dark(),
       theme: ThemeData(
-          primarySwatch: Colors.blue,
-          inputDecorationTheme: InputDecorationTheme(
-            //fillColor: Colors.white,
-            filled: true,
-            hintStyle: TextStyle(
-                fontSize: 8,
-                color: Colors.orangeAccent,
-                fontWeight: FontWeight.bold),
-          )),
+        primarySwatch: Colors.blue,
+        textTheme: const TextTheme(
+          titleMedium: TextStyle(
+              fontSize: 12,
+              color: Colors.orangeAccent,
+              fontWeight: FontWeight.bold), // default TextField input style
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          //fillColor: Colors.grey,
+          //filled: true,
+          hintStyle: TextStyle(
+              fontSize: 12,
+              color: Colors.orangeAccent,
+              fontWeight: FontWeight.bold),
+        ),
+      ),
+
       home: const Home(),
     );
   }
@@ -100,6 +108,7 @@ class _HomeState extends State<Home> {
                   child: Container(child: Consumer(
                     builder: (context, ref, child) {
                       return TextField(
+                        textAlign: TextAlign.center,
                         controller: null,
                         onChanged: (value) {
                           ref.read(SearchProvider.notifier).state = value;
@@ -142,6 +151,7 @@ class _HomeState extends State<Home> {
                         builder: (context, ref, child) {
                           final LatLngWatcher = ref.watch(latLngProvider);
                           return TextField(
+                            textAlign: TextAlign.center,
                             controller: latControl,
                             onChanged: (value) {
                               num newLat = double.parse(value);
@@ -175,6 +185,7 @@ class _HomeState extends State<Home> {
                         builder: (context, ref, child) {
                           final LatLngWatcher = ref.watch(latLngProvider);
                           return TextField(
+                            textAlign: TextAlign.center,
                             controller: lngControl,
                             onChanged: (value) {
                               num newLng = double.parse(value);
@@ -211,7 +222,7 @@ class _HomeState extends State<Home> {
                   Text(
                     "Media",
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                        color: Colors.orange, fontWeight: FontWeight.bold),
                   )
                 ],
               ),
@@ -229,6 +240,7 @@ class _HomeState extends State<Home> {
                       builder: (context, ref, child) {
                         final date1Watcher = ref.watch(DateTextProvider1);
                         return TextField(
+                            textAlign: TextAlign.center,
                             keyboardType: TextInputType.datetime,
                             controller: dateInput,
                             decoration: InputDecoration(
@@ -320,6 +332,7 @@ class _HomeState extends State<Home> {
                   builder: (context, ref, child) {
                     final distanceWatcher = ref.watch(distanceProvider);
                     return TextField(
+                      textAlign: TextAlign.center,
                       controller: distControl,
                       onChanged: (value) {
                         ref.read(distanceProvider.notifier).state = "";
@@ -548,7 +561,7 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
                         Text(
                             "3. Copy the json text from the instagram page opened in new tab."),
                         Text("3. Click the Below Paste Button."),
-                        Text("4. Click Generate Markers"),
+                        Text("4. Click Submit"),
                         Container(
                           height: 5,
                         ),
@@ -581,7 +594,7 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
                                 ),
                                 ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      primary: Colors.greenAccent,
+                                      primary: Colors.green,
                                     ),
                                     onPressed: () {
                                       instaMarkers.clear();
@@ -634,7 +647,7 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
                                       }
                                       Navigator.of(context).maybePop();
                                     },
-                                    child: Text("Generate Markers")),
+                                    child: Text("Submit")),
                                 Container(
                                   width: 2,
                                 )
