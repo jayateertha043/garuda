@@ -11,6 +11,7 @@ import 'dart:html';
 import 'package:intl/intl.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:velocity_x/velocity_x.dart';
 
 LatLng myLatlng = new LatLng(13.0827, 80.2707);
 bool isMedia = false;
@@ -20,6 +21,9 @@ String dateTextStr1 = "Until (Optional)";
 TextEditingController dateInput = new TextEditingController();
 TextEditingController dateInput1 = new TextEditingController();
 TextEditingController searchCntrl = new TextEditingController();
+TextEditingController latControl = new TextEditingController();
+TextEditingController lngControl = new TextEditingController();
+TextEditingController distControl = new TextEditingController();
 List<Marker> instaMarkers = <Marker>[];
 final latLngProvider = StateProvider((ref) => myLatlng);
 final instaMarkersProvider = StateProvider((ref) => <Marker>[]);
@@ -48,11 +52,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-final latControl = new TextEditingController();
-
-final lngControl = new TextEditingController();
-final distControl = new TextEditingController();
-
 class Home extends ConsumerWidget {
   const Home({super.key});
 
@@ -67,18 +66,21 @@ class Home extends ConsumerWidget {
     final instaMarkerWatcher = ref.watch(instaMarkersProvider);
     return Material(
       child: Stack(
-        alignment: Alignment.topCenter,
+        //alignment: Alignment.topCenter,
         children: [
           getMap(ref),
           Column(
+            //mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                height: 25,
+                height: context.isMobile ? 70 : 25,
               ),
               Container(
                 alignment: Alignment.topCenter,
                 width: MediaQuery.of(context).size.width * 0.6,
-                height: MediaQuery.of(context).size.width * 0.025,
+                height: context.isMobile
+                    ? MediaQuery.of(context).size.height * 0.04
+                    : MediaQuery.of(context).size.height * 0.10,
                 child: PointerInterceptor(
                     child: Align(
                   alignment: Alignment.center,
@@ -105,15 +107,21 @@ class Home extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                height: MediaQuery.of(context).size.width * 0.065,
+                height: context.isMobile
+                    ? MediaQuery.of(context).size.height * 0.13
+                    : MediaQuery.of(context).size.height * 0.05,
               ),
               Container(
                 height: 2,
               ),
               PointerInterceptor(
                   child: Container(
-                      width: MediaQuery.of(context).size.width * 0.1,
-                      height: MediaQuery.of(context).size.width * 0.025,
+                      width: context.isMobile
+                          ? MediaQuery.of(context).size.width * 0.3
+                          : MediaQuery.of(context).size.width * 0.1,
+                      height: context.isMobile
+                          ? MediaQuery.of(context).size.height * 0.04
+                          : MediaQuery.of(context).size.height * 0.04,
                       child: TextField(
                         controller: latControl,
                         onChanged: (value) {
@@ -135,8 +143,12 @@ class Home extends ConsumerWidget {
               ),
               PointerInterceptor(
                   child: Container(
-                      width: MediaQuery.of(context).size.width * 0.1,
-                      height: MediaQuery.of(context).size.width * 0.025,
+                      width: context.isMobile
+                          ? MediaQuery.of(context).size.width * 0.3
+                          : MediaQuery.of(context).size.width * 0.1,
+                      height: context.isMobile
+                          ? MediaQuery.of(context).size.height * 0.04
+                          : MediaQuery.of(context).size.height * 0.04,
                       child: TextField(
                         controller: lngControl,
                         onChanged: (value) {
@@ -175,8 +187,12 @@ class Home extends ConsumerWidget {
                   child: Row(
                 children: [
                   Container(
-                    width: MediaQuery.of(context).size.width * 0.1,
-                    height: MediaQuery.of(context).size.width * 0.025,
+                    width: context.isMobile
+                        ? MediaQuery.of(context).size.width * 0.3
+                        : MediaQuery.of(context).size.width * 0.1,
+                    height: context.isMobile
+                        ? MediaQuery.of(context).size.height * 0.04
+                        : MediaQuery.of(context).size.height * 0.04,
                     child: TextField(
                         keyboardType: TextInputType.datetime,
                         controller: dateInput,
@@ -209,8 +225,12 @@ class Home extends ConsumerWidget {
                   ),
                   PointerInterceptor(
                       child: Container(
-                    width: MediaQuery.of(context).size.width * 0.1,
-                    height: MediaQuery.of(context).size.width * 0.025,
+                    width: context.isMobile
+                        ? MediaQuery.of(context).size.width * 0.3
+                        : MediaQuery.of(context).size.width * 0.1,
+                    height: context.isMobile
+                        ? MediaQuery.of(context).size.height * 0.04
+                        : MediaQuery.of(context).size.height * 0.04,
                     child: TextField(
                         keyboardType: TextInputType.datetime,
                         controller: dateInput1,
@@ -246,8 +266,12 @@ class Home extends ConsumerWidget {
               ),
               PointerInterceptor(
                   child: Container(
-                width: MediaQuery.of(context).size.width * 0.1,
-                height: MediaQuery.of(context).size.width * 0.025,
+                width: context.isMobile
+                    ? MediaQuery.of(context).size.width * 0.3
+                    : MediaQuery.of(context).size.width * 0.1,
+                height: context.isMobile
+                    ? MediaQuery.of(context).size.height * 0.04
+                    : MediaQuery.of(context).size.height * 0.04,
                 child: TextField(
                   controller: distControl,
                   onChanged: (value) {
@@ -325,7 +349,7 @@ class Home extends ConsumerWidget {
                   child: const FaIcon(FontAwesomeIcons.twitter),
                 )),
                 Container(
-                  width: 2,
+                  width: 5,
                 ),
                 PointerInterceptor(
                     child: FloatingActionButton(
@@ -343,7 +367,7 @@ class Home extends ConsumerWidget {
                   child: const FaIcon(FontAwesomeIcons.snapchat),
                 )),
                 Container(
-                  width: 2,
+                  width: 5,
                 ),
                 PointerInterceptor(
                     child: FloatingActionButton(
@@ -417,128 +441,146 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
       context: context,
       builder: (builder) {
         return PointerInterceptor(
-          child: AlertDialog(
-            contentPadding: EdgeInsets.zero,
-            title: Text('Instagram Nearby Search'),
-            content: Container(
-                margin: EdgeInsets.all(5),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("1. You need to be signed in to instagram"),
-                    Text("2. Click instagram icon to open instagram."),
-                    Text(
-                        "3. Copy the json text from the instagram page opened in new tab."),
-                    Text("3. Click the Below Paste Button."),
-                    Text("4. Click Generate Markers"),
-                    Container(
-                      height: 5,
-                    ),
-                    Row(
+          child: Wrap(
+            children: [
+              AlertDialog(
+                contentPadding: EdgeInsets.zero,
+                title: Text('Instagram Nearby Search'),
+                content: Container(
+                    margin: EdgeInsets.all(5),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              primary: Colors.redAccent,
-                            ),
-                            onPressed: () async {
-                              await _launchInBrowser(Uri.parse(url));
-                            },
-                            child: FaIcon(FontAwesomeIcons.instagram)),
+                        Text("1. You need to be signed in to instagram"),
+                        Text("2. Click instagram icon to open instagram."),
+                        Text(
+                            "3. Copy the json text from the instagram page opened in new tab."),
+                        Text("3. Click the Below Paste Button."),
+                        Text("4. Click Generate Markers"),
                         Container(
-                          width: 2,
+                          height: 5,
                         ),
-                        ElevatedButton(
-                            onPressed: () {
-                              FlutterClipboard.paste().then((value) {
-                                // Do what ever you want with the value.
-                                instagramJson = value;
-                                print(instagramJson);
-                              });
-                            },
-                            child: Text("Paste")),
-                        Container(
-                          width: 2,
-                        ),
-                        ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              primary: Colors.greenAccent,
-                            ),
-                            onPressed: () {
-                              instaMarkers.clear();
-                              dynamic data = jsonDecode(instagramJson);
-                              if (data["status"] == "ok") {
-                                List<dynamic> venues = data["venues"];
-                                for (dynamic venue in venues) {
-                                  double? lat = venue["lat"];
-                                  double? lng = venue["lng"];
-                                  if (lat != null && lng != null) {
-                                    LatLng instaLatLng = LatLng(lat, lng);
-                                    String title = "";
-                                    String markerUrl = "";
-                                    if (venue["external_id_source"] ==
-                                        "facebook_places") {
-                                      markerUrl =
-                                          "https://www.instagram.com/explore/locations/" +
-                                              venue["external_id"].toString() +
-                                              "/";
-                                      Marker instaMarker =
-                                          new Marker(MarkerOptions()
-                                            ..position = instaLatLng
-                                            ..icon =
-                                                "http://maps.google.com/mapfiles/ms/icons/pink-pushpin.png"
-                                            ..map = map);
-                                      instaMarker.onClick.listen((event) async {
-                                        await _launchInBrowser(
-                                            Uri.parse(markerUrl));
+                        Wrap(
+                          children: [
+                            Row(
+                              children: [
+                                ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      primary: Colors.redAccent,
+                                    ),
+                                    onPressed: () async {
+                                      await _launchInBrowser(Uri.parse(url));
+                                    },
+                                    child: FaIcon(FontAwesomeIcons.instagram)),
+                                Container(
+                                  width: 2,
+                                ),
+                                ElevatedButton(
+                                    onPressed: () {
+                                      FlutterClipboard.paste().then((value) {
+                                        // Do what ever you want with the value.
+                                        instagramJson = value;
+                                        print(instagramJson);
                                       });
-                                      instaMarker.set("url", markerUrl);
+                                    },
+                                    child: Text("Paste")),
+                                Container(
+                                  width: 2,
+                                ),
+                                ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      primary: Colors.greenAccent,
+                                    ),
+                                    onPressed: () {
+                                      instaMarkers.clear();
+                                      dynamic data = jsonDecode(instagramJson);
+                                      if (data["status"] == "ok") {
+                                        List<dynamic> venues = data["venues"];
+                                        for (dynamic venue in venues) {
+                                          double? lat = venue["lat"];
+                                          double? lng = venue["lng"];
+                                          if (lat != null && lng != null) {
+                                            LatLng instaLatLng =
+                                                LatLng(lat, lng);
+                                            String title = "";
+                                            String markerUrl = "";
+                                            if (venue["external_id_source"] ==
+                                                "facebook_places") {
+                                              markerUrl =
+                                                  "https://www.instagram.com/explore/locations/" +
+                                                      venue["external_id"]
+                                                          .toString() +
+                                                      "/";
+                                              Marker instaMarker =
+                                                  new Marker(MarkerOptions()
+                                                    ..position = instaLatLng
+                                                    ..icon =
+                                                        "http://maps.google.com/mapfiles/ms/icons/pink-pushpin.png"
+                                                    ..map = map);
+                                              instaMarker.onClick
+                                                  .listen((event) async {
+                                                await _launchInBrowser(
+                                                    Uri.parse(markerUrl));
+                                              });
+                                              instaMarker.set("url", markerUrl);
 
-                                      String venueName = venue["name"] != null
-                                          ? venue["name"]
-                                          : "";
-                                      String venueAddress =
-                                          venue["address"] != null
-                                              ? venue["address"]
-                                              : "";
-                                      instaMarker.title =
-                                          venueName + "\n\n" + venueAddress;
-                                      instaMarkers.add(instaMarker);
-                                    }
-                                  }
-                                }
-                              }
-                              Navigator.of(context).maybePop();
-                            },
-                            child: Text("Generate Markers")),
+                                              String venueName =
+                                                  venue["name"] != null
+                                                      ? venue["name"]
+                                                      : "";
+                                              String venueAddress =
+                                                  venue["address"] != null
+                                                      ? venue["address"]
+                                                      : "";
+                                              instaMarker.title = venueName +
+                                                  "\n\n" +
+                                                  venueAddress;
+                                              instaMarkers.add(instaMarker);
+                                            }
+                                          }
+                                        }
+                                      }
+                                      Navigator.of(context).maybePop();
+                                    },
+                                    child: Text("Generate Markers")),
+                                Container(
+                                  width: 2,
+                                )
+                              ],
+                            ),
+                          ],
+                        ),
                         Container(
-                          width: 2,
+                          height: 20,
                         ),
-                        ElevatedButton(
-                            onPressed: () {
-                              for (Marker m in instaMarkers) {
-                                m.map = null;
-                              }
-                              instaMarkers.clear();
-                              //instaMarkers.length = 0;
-                              Navigator.of(context).maybePop();
-                            },
-                            child: Text("Clear Markers"))
+                        Row(children: [
+                          ElevatedButton(
+                              onPressed: () {
+                                for (Marker m in instaMarkers) {
+                                  m.map = null;
+                                }
+                                instaMarkers.clear();
+                                //instaMarkers.length = 0;
+                                Navigator.of(context).maybePop();
+                              },
+                              child: Text("Clear Markers")),
+                          Container(
+                            width: 2,
+                          ),
+                          ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                primary: Colors.redAccent,
+                              ),
+                              onPressed: () {
+                                Navigator.of(context).maybePop();
+                              },
+                              child: Text("Close"))
+                        ])
                       ],
-                    ),
-                    Container(
-                      height: 20,
-                    ),
-                    ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          primary: Colors.redAccent,
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).maybePop();
-                        },
-                        child: Text("Close"))
-                  ],
-                )),
+                    )),
+              ),
+            ],
           ),
         );
       });
