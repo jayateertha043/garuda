@@ -434,7 +434,41 @@ class _HomeState extends State<Home> {
                       },
                       backgroundColor: Colors.pinkAccent,
                       child: const FaIcon(FontAwesomeIcons.instagram),
-                    ))
+                    )),
+                    Container(
+                      width: 5,
+                    ),
+                    PointerInterceptor(
+                        child: FloatingActionButton(
+                      onPressed: () async {
+                        String tags = "";
+                        bool tagSet = false;
+
+                        String url =
+                            "https://mattw.io/youtube-geofind/location?location=" +
+                                LatLngWatcher.lat.toString() +
+                                "," +
+                                LatLngWatcher.lng.toString();
+                        if (searchWatcher != "" && searchWatcher != null) {
+                          tags = searchWatcher;
+                          url = url + "&keywords=" + tags;
+                        }
+                        if (int.tryParse(distanceWatcher) != null) {
+                          if (int.parse(distanceWatcher) > 0) {
+                            url = url + "&radius=" + distanceWatcher;
+                          } else {
+                            url = url = url + "&radius=" + "5";
+                          }
+                        } else {
+                          url = url = url + "&radius=" + "5";
+                        }
+                        url = url + "&pages=5&doSearch=true";
+                        await launchUrl(Uri.parse(url));
+                        print("clicked");
+                      },
+                      backgroundColor: Colors.red,
+                      child: const FaIcon(FontAwesomeIcons.youtube),
+                    )),
                   ],
                 );
               }))
