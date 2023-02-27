@@ -50,8 +50,14 @@ class MyApp extends StatelessWidget {
       title: 'Garuda',
       theme: ThemeData(
           primarySwatch: Colors.blue,
-          inputDecorationTheme:
-              InputDecorationTheme(fillColor: Colors.white, filled: true)),
+          inputDecorationTheme: InputDecorationTheme(
+            //fillColor: Colors.white,
+            filled: true,
+            hintStyle: TextStyle(
+                fontSize: 8,
+                color: Colors.orangeAccent,
+                fontWeight: FontWeight.bold),
+          )),
       home: const Home(),
     );
   }
@@ -78,7 +84,7 @@ class _HomeState extends State<Home> {
             //mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                height: context.isMobile ? 70 : 25,
+                height: context.isMobile ? 50 : 25,
               ),
               Container(
                 alignment: Alignment.topCenter,
@@ -97,7 +103,7 @@ class _HomeState extends State<Home> {
                           ref.read(SearchProvider.notifier).state = value;
                         },
                         decoration: InputDecoration(
-                          fillColor: Colors.white,
+                          //fillColor: Colors.white,
                           hintText: 'Search for tags, words ...',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10.0),
@@ -143,7 +149,7 @@ class _HomeState extends State<Home> {
                                   newLatLng;
                             },
                             decoration: InputDecoration(
-                              fillColor: Colors.white,
+                              //fillColor: Colors.white,
                               hintText: LatLngWatcher.lat.toString(),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10.0),
