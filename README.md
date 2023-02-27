@@ -1,16 +1,23 @@
-# garuda
+# Garuda
 
-A new Flutter project.
+> See social media posts/stories/feeds based in location for GEO OSINT.
 
-## Getting Started
+Live Website - https://garuda.jayateerthag.in
 
-This project is a starting point for a Flutter application.
+### Supported Platforms
+1. Twitter
+2. Snapchat
+3. Instagram - click on generated pins on map to view content near those locations.
+4. Youtube 
 
-A few resources to get you started if this is your first Flutter project:
+### Credits
+1. https://github.com/mattwright324/youtube-geofind - @mattwright324 for Youtube Module
+2. Instagram Location Search inpired from - [instahunt.co](https://instahunt.co/)
+3. Twitter Location Search inspired & improved from - [osintcombine social geo lens](https://www.osintcombine.com/social-geo-lens)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Author
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+👤 **Jayateertha G**
+
+* Twitter: [@jayateerthaG](https://twitter.com/jayateerthaG)
+* Github: [@jayateertha043](https://github.com/jayateertha043)
