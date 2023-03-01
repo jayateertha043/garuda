@@ -1,16 +1,21 @@
 import 'dart:convert';
 
 import 'package:clipboard/clipboard.dart';
+import 'package:fab_circular_menu/fab_circular_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps/google_maps.dart';
+import 'package:flutter/src/widgets/icon.dart' as icons;
+import 'package:intl/date_symbol_data_local.dart';
 import 'dart:ui' as ui;
 import 'dart:html';
 import 'package:intl/intl.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:velocity_x/velocity_x.dart';
+
+import 'custom_icons.dart';
 
 //Global Variables
 String dateTextStr = "Since (Optional)";
@@ -59,9 +64,10 @@ class MyApp extends StatelessWidget {
               fontWeight: FontWeight.bold), // default TextField input style
         ),
         inputDecorationTheme: InputDecorationTheme(
+          floatingLabelBehavior: FloatingLabelBehavior.auto,
           contentPadding: EdgeInsets.only(top: 2),
           isCollapsed: true,
-          fillColor: Colors.white12,
+          fillColor: Colors.white,
           filled: true,
           hintStyle: TextStyle(
               fontSize: 12,
@@ -367,22 +373,31 @@ class _HomeState extends State<Home> {
               ))
             ],
           ),
-          Align(
-              alignment: Alignment.bottomCenter,
-              child: Consumer(builder: (context, ref, child) {
-                final LatLngWatcher = ref.watch(latLngProvider);
-                final isMediaWatcher = ref.watch(MediaProvider);
-                final distanceWatcher = ref.watch(distanceProvider);
-                final date1Watcher = ref.watch(DateTextProvider1);
-                final date2Watcher = ref.watch(DateTextProvider2);
-                final searchWatcher = ref.watch(SearchProvider);
-                final instaMarkerWatcher = ref.watch(instaMarkersProvider);
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    PointerInterceptor(
-                        child: FloatingActionButton(
+          Consumer(
+            builder: (context, ref, child) {
+              final LatLngWatcher = ref.watch(latLngProvider);
+              final isMediaWatcher = ref.watch(MediaProvider);
+              final distanceWatcher = ref.watch(distanceProvider);
+              final date1Watcher = ref.watch(DateTextProvider1);
+              final date2Watcher = ref.watch(DateTextProvider2);
+              final searchWatcher = ref.watch(SearchProvider);
+              final instaMarkerWatcher = ref.watch(instaMarkersProvider);
+              return FabCircularMenu(
+                fabColor: Colors.transparent,
+                ringColor: Colors.transparent,
+                fabChild: PointerInterceptor(
+                  child: FloatingActionButton(
+                    backgroundColor: Colors.green,
+                    onPressed: null,
+                    child: FaIcon(FontAwesomeIcons.bars),
+                  ),
+                ),
+                alignment: Alignment.bottomCenter,
+                //ringWidth: 10,
+                ringDiameter: 450,
+                children: [
+                  PointerInterceptor(
+                    child: FloatingActionButton(
                       onPressed: () async {
                         String tags = "";
                         String near = "geocode:";
@@ -426,12 +441,10 @@ class _HomeState extends State<Home> {
                       },
                       backgroundColor: Colors.blue,
                       child: const FaIcon(FontAwesomeIcons.twitter),
-                    )),
-                    Container(
-                      width: 5,
                     ),
-                    PointerInterceptor(
-                        child: FloatingActionButton(
+                  ),
+                  PointerInterceptor(
+                    child: FloatingActionButton(
                       onPressed: () async {
                         String tags = "";
                         String url = "https://map.snapchat.com/@" +
@@ -444,12 +457,10 @@ class _HomeState extends State<Home> {
                       },
                       backgroundColor: Colors.yellow,
                       child: const FaIcon(FontAwesomeIcons.snapchat),
-                    )),
-                    Container(
-                      width: 5,
                     ),
-                    PointerInterceptor(
-                        child: FloatingActionButton(
+                  ),
+                  PointerInterceptor(
+                    child: FloatingActionButton(
                       onPressed: () async {
                         String url =
                             "https://www.instagram.com/location_search/?latitude=" +
@@ -464,12 +475,10 @@ class _HomeState extends State<Home> {
                       },
                       backgroundColor: Colors.pinkAccent,
                       child: const FaIcon(FontAwesomeIcons.instagram),
-                    )),
-                    Container(
-                      width: 5,
                     ),
-                    PointerInterceptor(
-                        child: FloatingActionButton(
+                  ),
+                  PointerInterceptor(
+                    child: FloatingActionButton(
                       onPressed: () async {
                         String tags = "";
                         bool tagSet = false;
@@ -498,10 +507,64 @@ class _HomeState extends State<Home> {
                       },
                       backgroundColor: Colors.red,
                       child: const FaIcon(FontAwesomeIcons.youtube),
-                    )),
-                  ],
-                );
-              }))
+                    ),
+                  ),
+                  PointerInterceptor(
+                    child: FloatingActionButton(
+                      onPressed: () async {
+                        String tags = "";
+                        String near = "geo:";
+                        bool tagSet = false;
+                        if (searchWatcher != "" && searchWatcher != null) {
+                          tags = searchWatcher;
+                          near = " geo:";
+                        }
+
+                        String url = "https://www.shodan.io/search?query=" +
+                            tags +
+                            near +
+                            LatLngWatcher.lat.toString() +
+                            "," +
+                            LatLngWatcher.lng.toString();
+                        if (int.tryParse(distanceWatcher) != null) {
+                          if (int.parse(distanceWatcher) > 0) {
+                            url = url + "," + distanceWatcher;
+                          } else {
+                            url = url + "," + "10";
+                          }
+                        } else {
+                          url = url + "," + "10";
+                        }
+
+                        /*if (DateTime.tryParse(date1Watcher) != null) {
+                          await initializeDateFormatting("en");
+                          String dateFormatted = DateFormat("dd/MM/yyyy")
+                              .format(DateTime.tryParse(
+                                  ref.read(DateTextProvider1.notifier).state)!)
+                              .toString();
+                  
+                          url = url + " after:" + dateFormatted;
+                        }
+                        if (DateTime.tryParse(date2Watcher) != null) {
+                          await initializeDateFormatting("en");
+                          String dateFormatted = DateFormat("dd/MM/yyyy")
+                              .format(DateTime.tryParse(
+                                  ref.read(DateTextProvider2.notifier).state)!)
+                              .toString();
+                          url = url + " before:" + dateFormatted;
+                        }*/
+
+                        await launchUrl(Uri.parse(url));
+                        print("clicked");
+                      },
+                      backgroundColor: Colors.black26,
+                      child: Image.asset("assets/shodan.png"),
+                    ),
+                  ),
+                ],
+              );
+            },
+          )
         ],
       ),
     );
@@ -510,7 +573,8 @@ class _HomeState extends State<Home> {
 
 final mapOptions = new MapOptions()
   ..zoom = 8
-  ..center = myLatlng;
+  ..center = myLatlng
+  ..mapTypeId = 'hybrid';
 
 String htmlId = "7";
 
