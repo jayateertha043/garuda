@@ -1,7 +1,6 @@
 # Garuda
 
-> See social media posts/stories/feeds based in location for GEO OSINT.
-
+> Search popular social media platforms and shodan based on Geo Coordinates for OSINT.
 Live Website - https://garuda.jayateerthag.in
 
 ### Supported Platforms
