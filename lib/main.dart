@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:html';
 
 import 'package:clipboard/clipboard.dart';
 import 'package:fab_circular_menu/fab_circular_menu.dart';
@@ -7,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps/google_maps.dart';
 import 'dart:ui' as ui;
-import 'dart:html';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:velocity_x/velocity_x.dart';
@@ -581,7 +581,7 @@ final mapOptions = MapOptions()
 
 String htmlId = "7";
 
-DivElement elem = DivElement()
+final elem = DivElement()
   ..id = htmlId
   ..style.width = "100%"
   ..style.height = "100%"
