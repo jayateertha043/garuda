@@ -11,6 +11,7 @@ import 'dart:html';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:velocity_x/velocity_x.dart';
+import 'package:web/src/dom/html.dart' as h;
 
 //Global Variables
 String dateTextStr = "Since (Optional)";
@@ -580,12 +581,12 @@ final mapOptions = MapOptions()
 
 String htmlId = "7";
 
-final elem = DivElement()
+DivElement elem = DivElement()
   ..id = htmlId
   ..style.width = "100%"
   ..style.height = "100%"
   ..style.border = 'none';
-final map = GMap(elem, mapOptions);
+final map = GMap(elem as h.HTMLElement?);
 
 Marker marker = Marker(MarkerOptions()
   ..position = myLatlng
