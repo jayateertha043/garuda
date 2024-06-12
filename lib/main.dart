@@ -57,6 +57,7 @@ class MyApp extends StatelessWidget {
       // darkTheme: ThemeData.dark(),
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        primaryColor: Colors.orangeAccent,
         textTheme: const TextTheme(
           titleMedium: TextStyle(
               fontSize: 12,
@@ -515,6 +516,11 @@ class _HomeState extends State<Home> {
                         String tags = "";
                         String near = "geo:";
                         bool tagSet = false;
+
+                        if (isMediaWatcher) {
+                          tags = tags + "has_screenshot:true ";
+                        }
+
                         if (searchWatcher != "" && searchWatcher != null) {
                           tags = searchWatcher;
                           near = " geo:";
@@ -644,7 +650,7 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
                               children: [
                                 ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      primary: Colors.redAccent,
+                                      backgroundColor: Colors.redAccent,
                                     ),
                                     onPressed: () async {
                                       await _launchInBrowser(Uri.parse(url));
@@ -661,13 +667,16 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
                                         print(instagramJson);
                                       });
                                     },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.yellow,
+                                    ),
                                     child: Text("Paste")),
                                 Container(
                                   width: 2,
                                 ),
                                 ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      primary: Colors.green,
+                                      backgroundColor: Colors.green,
                                     ),
                                     onPressed: () {
                                       instaMarkers.clear();
@@ -741,13 +750,16 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
                                 //instaMarkers.length = 0;
                                 Navigator.of(context).maybePop();
                               },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                              ),
                               child: Text("Clear Markers")),
                           Container(
                             width: 2,
                           ),
                           ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                primary: Colors.redAccent,
+                                backgroundColor: Colors.redAccent,
                               ),
                               onPressed: () {
                                 Navigator.of(context).maybePop();
