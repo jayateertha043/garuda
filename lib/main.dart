@@ -6,33 +6,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps/google_maps.dart';
-import 'package:flutter/src/widgets/icon.dart' as icons;
-import 'package:intl/date_symbol_data_local.dart';
 import 'dart:ui' as ui;
 import 'dart:html';
-import 'package:intl/intl.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:velocity_x/velocity_x.dart';
-
-import 'custom_icons.dart';
 
 //Global Variables
 String dateTextStr = "Since (Optional)";
 String distanceStr = "Within";
 String dateTextStr1 = "Until (Optional)";
 String instagramJson = "";
-LatLng myLatlng = new LatLng(13.0827, 80.2707);
+LatLng myLatlng = LatLng(13.0827, 80.2707);
 bool isMedia = false;
 List<Marker> instaMarkers = <Marker>[];
 
 //Text Editing Contollers
-TextEditingController dateInput = new TextEditingController();
-TextEditingController dateInput1 = new TextEditingController();
-TextEditingController searchCntrl = new TextEditingController();
-TextEditingController latControl = new TextEditingController();
-TextEditingController lngControl = new TextEditingController();
-TextEditingController distControl = new TextEditingController();
+TextEditingController dateInput = TextEditingController();
+TextEditingController dateInput1 = TextEditingController();
+TextEditingController searchCntrl = TextEditingController();
+TextEditingController latControl = TextEditingController();
+TextEditingController lngControl = TextEditingController();
+TextEditingController distControl = TextEditingController();
 
 //States
 final latLngProvider = StateProvider((ref) => myLatlng);
@@ -64,7 +59,7 @@ class MyApp extends StatelessWidget {
               color: Colors.orangeAccent,
               fontWeight: FontWeight.bold), // default TextField input style
         ),
-        inputDecorationTheme: InputDecorationTheme(
+        inputDecorationTheme: const InputDecorationTheme(
           floatingLabelBehavior: FloatingLabelBehavior.auto,
           contentPadding: EdgeInsets.only(top: 2),
           isCollapsed: true,
@@ -153,7 +148,7 @@ class _HomeState extends State<Home> {
                 height: 2,
               ),
               PointerInterceptor(
-                  child: Container(
+                  child: SizedBox(
                       width: context.isMobile
                           ? MediaQuery.of(context).size.width * 0.3
                           : MediaQuery.of(context).size.width * 0.1,
@@ -164,13 +159,16 @@ class _HomeState extends State<Home> {
                         builder: (context, ref, child) {
                           final LatLngWatcher = ref.watch(latLngProvider);
                           return TextField(
+                            minLines: null,
+                            maxLines: null,
+                            expands: true,
                             textAlign: TextAlign.center,
                             textAlignVertical: TextAlignVertical.center,
                             controller: latControl,
                             onChanged: (value) {
                               num newLat = double.parse(value);
                               num oldLng = LatLngWatcher.lng;
-                              LatLng newLatLng = new LatLng(newLat, oldLng);
+                              LatLng newLatLng = LatLng(newLat, oldLng);
                               ref.read(latLngProvider.notifier).state =
                                   newLatLng;
                             },
@@ -188,7 +186,7 @@ class _HomeState extends State<Home> {
                 height: 2,
               ),
               PointerInterceptor(
-                  child: Container(
+                  child: SizedBox(
                       width: context.isMobile
                           ? MediaQuery.of(context).size.width * 0.3
                           : MediaQuery.of(context).size.width * 0.1,
@@ -199,13 +197,16 @@ class _HomeState extends State<Home> {
                         builder: (context, ref, child) {
                           final LatLngWatcher = ref.watch(latLngProvider);
                           return TextField(
+                            minLines: null,
+                            maxLines: null,
+                            expands: true,
                             textAlign: TextAlign.center,
                             textAlignVertical: TextAlignVertical.center,
                             controller: lngControl,
                             onChanged: (value) {
                               num newLng = double.parse(value);
                               num oldLat = LatLngWatcher.lat;
-                              LatLng newLatLng = new LatLng(oldLat, newLng);
+                              LatLng newLatLng = LatLng(oldLat, newLng);
                               ref.read(latLngProvider.notifier).state =
                                   newLatLng;
                             },
@@ -227,6 +228,8 @@ class _HomeState extends State<Home> {
                     builder: (context, ref, child) {
                       final isMediaWatcher = ref.watch(MediaProvider);
                       return Checkbox(
+                        fillColor: MaterialStateProperty.all(Colors.white),
+                        checkColor: Colors.orange,
                         value: isMediaWatcher,
                         onChanged: (bool? value) {
                           ref.read(MediaProvider.notifier).state = value!;
@@ -234,7 +237,7 @@ class _HomeState extends State<Home> {
                       );
                     },
                   )),
-                  Text(
+                  const Text(
                     "Media",
                     style: TextStyle(
                         color: Colors.orange, fontWeight: FontWeight.bold),
@@ -244,7 +247,7 @@ class _HomeState extends State<Home> {
               PointerInterceptor(
                   child: Row(
                 children: [
-                  Container(
+                  SizedBox(
                     width: context.isMobile
                         ? MediaQuery.of(context).size.width * 0.3
                         : MediaQuery.of(context).size.width * 0.1,
@@ -255,6 +258,9 @@ class _HomeState extends State<Home> {
                       builder: (context, ref, child) {
                         final date1Watcher = ref.watch(DateTextProvider1);
                         return TextField(
+                            minLines: null,
+                            maxLines: null,
+                            expands: true,
                             textAlign: TextAlign.center,
                             textAlignVertical: TextAlignVertical.center,
                             keyboardType: TextInputType.datetime,
@@ -281,7 +287,6 @@ class _HomeState extends State<Home> {
                                   pickedDate.toString().substring(0, 10);
                               print(pickedDate);
                               print(date1Watcher);
-                              ;
                             });
                       },
                     ),
@@ -290,7 +295,7 @@ class _HomeState extends State<Home> {
                     width: 1,
                   ),
                   PointerInterceptor(
-                      child: Container(
+                      child: SizedBox(
                     width: context.isMobile
                         ? MediaQuery.of(context).size.width * 0.3
                         : MediaQuery.of(context).size.width * 0.1,
@@ -301,6 +306,9 @@ class _HomeState extends State<Home> {
                       builder: (context, ref, child) {
                         final date2Watcher = ref.watch(DateTextProvider2);
                         return TextField(
+                            minLines: null,
+                            maxLines: null,
+                            expands: true,
                             textAlign: TextAlign.center,
                             textAlignVertical: TextAlignVertical.center,
                             keyboardType: TextInputType.datetime,
@@ -339,7 +347,7 @@ class _HomeState extends State<Home> {
                 height: 2,
               ),
               PointerInterceptor(
-                  child: Container(
+                  child: SizedBox(
                 width: context.isMobile
                     ? MediaQuery.of(context).size.width * 0.3
                     : MediaQuery.of(context).size.width * 0.1,
@@ -350,6 +358,9 @@ class _HomeState extends State<Home> {
                   builder: (context, ref, child) {
                     final distanceWatcher = ref.watch(distanceProvider);
                     return TextField(
+                      minLines: null,
+                      maxLines: null,
+                      expands: true,
                       textAlign: TextAlign.center,
                       textAlignVertical: TextAlignVertical.center,
                       controller: distControl,
@@ -363,7 +374,7 @@ class _HomeState extends State<Home> {
                                     : "5";
                       },
                       decoration: InputDecoration(
-                          suffix: Text("(km)"),
+                          suffix: const Text("(km)"),
                           hintText: int.tryParse(distanceWatcher) == null &&
                                   distanceWatcher != distanceStr
                               ? distanceWatcher
@@ -387,10 +398,11 @@ class _HomeState extends State<Home> {
               final searchWatcher = ref.watch(SearchProvider);
               final instaMarkerWatcher = ref.watch(instaMarkersProvider);
               return FabCircularMenu(
+                fabMargin: EdgeInsets.all(24),
                 fabColor: Colors.transparent,
                 ringColor: Colors.transparent,
                 fabChild: PointerInterceptor(
-                  child: FloatingActionButton(
+                  child: const FloatingActionButton(
                     backgroundColor: Colors.green,
                     onPressed: null,
                     child: FaIcon(FontAwesomeIcons.bars),
@@ -398,7 +410,7 @@ class _HomeState extends State<Home> {
                 ),
                 alignment: Alignment.bottomCenter,
                 //ringWidth: 10,
-                ringDiameter: 450,
+                ringDiameter: 500,
                 children: [
                   PointerInterceptor(
                     child: FloatingActionButton(
@@ -406,38 +418,32 @@ class _HomeState extends State<Home> {
                         String tags = "";
                         String near = "geocode:";
                         bool tagSet = false;
-                        if (searchWatcher != "" && searchWatcher != null) {
+                        if (searchWatcher != "") {
                           tags = searchWatcher;
                           near = " geocode:";
                         }
 
-                        String url = "https://twitter.com/search?q=" +
-                            tags +
-                            near +
-                            LatLngWatcher.lat.toString() +
-                            "," +
-                            LatLngWatcher.lng.toString();
+                        String url =
+                            "https://twitter.com/search?q=$tags$near${LatLngWatcher.lat},${LatLngWatcher.lng}";
                         if (int.tryParse(distanceWatcher) != null) {
                           if (int.parse(distanceWatcher) > 0) {
-                            url = url + "," + distanceWatcher + "km";
+                            url = "$url,${distanceWatcher}km";
                           } else {
-                            url = url + "," + "5" + "km";
+                            url = "$url,5km";
                           }
                         } else {
-                          url = url + "," + "5" + "km";
+                          url = "$url,5km";
                         }
                         if (isMediaWatcher) {
-                          url = url + " filter:media";
+                          url = "$url filter:media";
                         }
                         if (DateTime.tryParse(date1Watcher) != null) {
-                          url = url +
-                              " since:" +
-                              ref.read(DateTextProvider1.notifier).state;
+                          url =
+                              "$url since:${ref.read(DateTextProvider1.notifier).state}";
                         }
                         if (DateTime.tryParse(date2Watcher) != null) {
-                          url = url +
-                              " until:" +
-                              ref.read(DateTextProvider2.notifier).state;
+                          url =
+                              "$url until:${ref.read(DateTextProvider2.notifier).state}";
                         }
 
                         await launchUrl(Uri.parse(url));
@@ -451,11 +457,8 @@ class _HomeState extends State<Home> {
                     child: FloatingActionButton(
                       onPressed: () async {
                         String tags = "";
-                        String url = "https://map.snapchat.com/@" +
-                            LatLngWatcher.lat.toString() +
-                            "," +
-                            LatLngWatcher.lng.toString() +
-                            ",15z";
+                        String url =
+                            "https://map.snapchat.com/@${LatLngWatcher.lat},${LatLngWatcher.lng},15z";
                         await launchUrl(Uri.parse(url));
                         print("clicked");
                       },
@@ -467,10 +470,7 @@ class _HomeState extends State<Home> {
                     child: FloatingActionButton(
                       onPressed: () async {
                         String url =
-                            "https://www.instagram.com/location_search/?latitude=" +
-                                LatLngWatcher.lat.toString() +
-                                "&longitude=" +
-                                LatLngWatcher.lng.toString();
+                            "https://www.instagram.com/location_search/?latitude=${LatLngWatcher.lat}&longitude=${LatLngWatcher.lng}";
                         _showDialog(context, ref, url);
                         String tags = "";
 
@@ -488,24 +488,21 @@ class _HomeState extends State<Home> {
                         bool tagSet = false;
 
                         String url =
-                            "https://mattw.io/youtube-geofind/location?location=" +
-                                LatLngWatcher.lat.toString() +
-                                "," +
-                                LatLngWatcher.lng.toString();
-                        if (searchWatcher != "" && searchWatcher != null) {
+                            "https://mattw.io/youtube-geofind/location?location=${LatLngWatcher.lat},${LatLngWatcher.lng}";
+                        if (searchWatcher != "") {
                           tags = searchWatcher;
-                          url = url + "&keywords=" + tags;
+                          url = "$url&keywords=$tags";
                         }
                         if (int.tryParse(distanceWatcher) != null) {
                           if (int.parse(distanceWatcher) > 0) {
-                            url = url + "&radius=" + distanceWatcher;
+                            url = "$url&radius=$distanceWatcher";
                           } else {
-                            url = url = url + "&radius=" + "5";
+                            url = url = "$url&radius=5";
                           }
                         } else {
-                          url = url = url + "&radius=" + "5";
+                          url = url = "$url&radius=5";
                         }
-                        url = url + "&pages=5&doSearch=true";
+                        url = "$url&pages=5&doSearch=true";
                         await launchUrl(Uri.parse(url));
                         print("clicked");
                       },
@@ -521,28 +518,24 @@ class _HomeState extends State<Home> {
                         bool tagSet = false;
 
                         if (isMediaWatcher) {
-                          tags = tags + "has_screenshot:true ";
+                          tags = "${tags}has_screenshot:true ";
                         }
 
-                        if (searchWatcher != "" && searchWatcher != null) {
+                        if (searchWatcher != "") {
                           tags = searchWatcher;
                           near = " geo:";
                         }
 
-                        String url = "https://www.shodan.io/search?query=" +
-                            tags +
-                            near +
-                            LatLngWatcher.lat.toString() +
-                            "," +
-                            LatLngWatcher.lng.toString();
+                        String url =
+                            "https://www.shodan.io/search?query=$tags$near${LatLngWatcher.lat},${LatLngWatcher.lng}";
                         if (int.tryParse(distanceWatcher) != null) {
                           if (int.parse(distanceWatcher) > 0) {
-                            url = url + "," + distanceWatcher;
+                            url = "$url,$distanceWatcher";
                           } else {
-                            url = url + "," + "10";
+                            url = "$url,10";
                           }
                         } else {
-                          url = url + "," + "10";
+                          url = "$url,10";
                         }
 
                         /*if (DateTime.tryParse(date1Watcher) != null) {
@@ -580,7 +573,7 @@ class _HomeState extends State<Home> {
   }
 }
 
-final mapOptions = new MapOptions()
+final mapOptions = MapOptions()
   ..zoom = 8
   ..center = myLatlng
   ..mapTypeId = 'hybrid';
@@ -631,19 +624,20 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
             children: [
               AlertDialog(
                 contentPadding: EdgeInsets.zero,
-                title: Text('Instagram Nearby Search'),
+                title: const Text('Instagram Nearby Search'),
                 content: Container(
-                    margin: EdgeInsets.all(5),
+                    margin: const EdgeInsets.all(5),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("1. You need to be signed in to instagram"),
-                        Text("2. Click instagram icon to open instagram."),
-                        Text(
+                        const Text("1. You need to be signed in to instagram"),
+                        const Text(
+                            "2. Click instagram icon to open instagram."),
+                        const Text(
                             "3. Copy the json text from the instagram page opened in new tab."),
-                        Text("3. Click the Below Paste Button."),
-                        Text("4. Click Submit"),
+                        const Text("3. Click the Below Paste Button."),
+                        const Text("4. Click Submit"),
                         Container(
                           height: 5,
                         ),
@@ -658,7 +652,8 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
                                     onPressed: () async {
                                       await _launchInBrowser(Uri.parse(url));
                                     },
-                                    child: FaIcon(FontAwesomeIcons.instagram)),
+                                    child: const FaIcon(
+                                        FontAwesomeIcons.instagram)),
                                 Container(
                                   width: 2,
                                 ),
@@ -673,7 +668,7 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.yellow,
                                     ),
-                                    child: Text("Paste")),
+                                    child: const Text("Paste")),
                                 Container(
                                   width: 2,
                                 ),
@@ -697,12 +692,9 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
                                             if (venue["external_id_source"] ==
                                                 "facebook_places") {
                                               markerUrl =
-                                                  "https://www.instagram.com/explore/locations/" +
-                                                      venue["external_id"]
-                                                          .toString() +
-                                                      "/";
+                                                  "https://www.instagram.com/explore/locations/${venue["external_id"]}/";
                                               Marker instaMarker =
-                                                  new Marker(MarkerOptions()
+                                                  Marker(MarkerOptions()
                                                     ..position = instaLatLng
                                                     ..icon =
                                                         "http://maps.google.com/mapfiles/ms/icons/pink-pushpin.png"
@@ -715,16 +707,11 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
                                               instaMarker.set("url", markerUrl);
 
                                               String venueName =
-                                                  venue["name"] != null
-                                                      ? venue["name"]
-                                                      : "";
+                                                  venue["name"] ?? "";
                                               String venueAddress =
-                                                  venue["address"] != null
-                                                      ? venue["address"]
-                                                      : "";
-                                              instaMarker.title = venueName +
-                                                  "\n\n" +
-                                                  venueAddress;
+                                                  venue["address"] ?? "";
+                                              instaMarker.title =
+                                                  "$venueName\n\n$venueAddress";
                                               instaMarkers.add(instaMarker);
                                             }
                                           }
@@ -732,7 +719,7 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
                                       }
                                       Navigator.of(context).maybePop();
                                     },
-                                    child: Text("Submit")),
+                                    child: const Text("Submit")),
                                 Container(
                                   width: 2,
                                 )
@@ -756,7 +743,7 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue,
                               ),
-                              child: Text("Clear Markers")),
+                              child: const Text("Clear Markers")),
                           Container(
                             width: 2,
                           ),
@@ -767,7 +754,7 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
                               onPressed: () {
                                 Navigator.of(context).maybePop();
                               },
-                              child: Text("Close"))
+                              child: const Text("Close"))
                         ])
                       ],
                     )),
