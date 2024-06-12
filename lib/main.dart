@@ -117,6 +117,9 @@ class _HomeState extends State<Home> {
                   child: Container(child: Consumer(
                     builder: (context, ref, child) {
                       return TextField(
+                        minLines: null,
+                        maxLines: null,
+                        expands: true,
                         textAlign: TextAlign.center,
                         textAlignVertical: TextAlignVertical.center,
                         controller: null,
