@@ -25,29 +25,18 @@
 
   <title>garuda</title>
   <!--<link rel="manifest" href="manifest.json">-->
-  <style>
-    html, body, #map, .map {
-      height: 100%;
-      width: 100%;
-      margin: 0px;
-      padding: 0px
-    }
-  </style>
 
   <script>
     // The value below is injected by flutter build, do not touch.
-    const serviceWorkerVersion = "547630751";
+    const serviceWorkerVersion = "2661433472";
   </script>
-  
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCWXhcm0KwEd14jYMUkCBuIRHx7RvI83pM&callback=initMap&loading=async" defer></script>
-  
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCWXhcm0KwEd14jYMUkCBuIRHx7RvI83pM&callback=initMap"></script>
 
 </head>
 <body>
-  <div id="map" class="map"></div>
-  
+  <div class="map" id="map"></div>
   <script>
     window.addEventListener('load', function(ev) {
       // Download main.dart.js
