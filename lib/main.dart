@@ -579,14 +579,9 @@ final mapOptions = MapOptions()
   ..center = myLatlng
   ..mapTypeId = 'hybrid';
 
-String htmlId = "7";
+String htmlId = "map";
 
-final elem = DivElement()
-  ..id = htmlId
-  ..style.width = "100%"
-  ..style.height = "100%"
-  ..style.border = 'none';
-final map = GMap(elem as h.HTMLElement?);
+final map = GMap(document.getElementById('map') as h.HTMLElement, mapOptions);
 
 Marker marker = Marker(MarkerOptions()
   ..position = myLatlng
@@ -601,7 +596,7 @@ Widget getMap(WidgetRef ref) {
       marker.position = myLatlng;
     });
 
-    return elem;
+    return map;
   });
 
   return HtmlElementView(viewType: htmlId);
