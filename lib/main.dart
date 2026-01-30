@@ -5,9 +5,8 @@ import 'package:fab_circular_menu/fab_circular_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_maps/google_maps.dart';
-import 'dart:ui' as ui;
-import 'dart:html';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' as latlng;
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:velocity_x/velocity_x.dart';
@@ -17,9 +16,9 @@ String dateTextStr = "Since (Optional)";
 String distanceStr = "Within";
 String dateTextStr1 = "Until (Optional)";
 String instagramJson = "";
-LatLng myLatlng = LatLng(13.0827, 80.2707);
+latlng.LatLng myLatlng = const latlng.LatLng(13.0827, 80.2707);
 bool isMedia = false;
-List<Marker> instaMarkers = <Marker>[];
+// Use `instaMarkersProvider` (below) to hold flutter_map markers so UI rebuilds.
 
 //Text Editing Contollers
 TextEditingController dateInput = TextEditingController();
@@ -167,14 +166,14 @@ class _HomeState extends State<Home> {
                             controller: latControl,
                             onChanged: (value) {
                               num newLat = double.parse(value);
-                              num oldLng = LatLngWatcher.lng;
-                              LatLng newLatLng = LatLng(newLat, oldLng);
+                              num oldLng = LatLngWatcher.longitude;
+                              latlng.LatLng newLatLng = latlng.LatLng(newLat as double, oldLng as double);
                               ref.read(latLngProvider.notifier).state =
                                   newLatLng;
                             },
                             decoration: InputDecoration(
                               //fillColor: Colors.white,
-                              hintText: LatLngWatcher.lat.toString(),
+                              hintText: LatLngWatcher.latitude.toString(),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10.0),
                               ),
@@ -205,13 +204,13 @@ class _HomeState extends State<Home> {
                             controller: lngControl,
                             onChanged: (value) {
                               num newLng = double.parse(value);
-                              num oldLat = LatLngWatcher.lat;
-                              LatLng newLatLng = LatLng(oldLat, newLng);
+                              num oldLat = LatLngWatcher.latitude;
+                              latlng.LatLng newLatLng = latlng.LatLng(oldLat as double, newLng as double);
                               ref.read(latLngProvider.notifier).state =
                                   newLatLng;
                             },
                             decoration: InputDecoration(
-                              hintText: LatLngWatcher.lng.toString(),
+                              hintText: LatLngWatcher.longitude.toString(),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10.0),
                               ),
@@ -228,7 +227,7 @@ class _HomeState extends State<Home> {
                     builder: (context, ref, child) {
                       final isMediaWatcher = ref.watch(MediaProvider);
                       return Checkbox(
-                        fillColor: MaterialStateProperty.all(Colors.white),
+                        fillColor: WidgetStateProperty.all(Colors.white),
                         checkColor: Colors.orange,
                         value: isMediaWatcher,
                         onChanged: (bool? value) {
@@ -285,8 +284,6 @@ class _HomeState extends State<Home> {
                               ref.read(DateTextProvider1.notifier).state = "";
                               ref.read(DateTextProvider1.notifier).state =
                                   pickedDate.toString().substring(0, 10);
-                              print(pickedDate);
-                              print(date1Watcher);
                             });
                       },
                     ),
@@ -332,8 +329,6 @@ class _HomeState extends State<Home> {
                                   lastDate: DateTime(2101));
                               ref.read(DateTextProvider2.notifier).state =
                                   pickedDate.toString().substring(0, 10);
-                              print(pickedDate);
-                              print(date2Watcher);
                             });
                       },
                     ),
@@ -396,16 +391,15 @@ class _HomeState extends State<Home> {
               final date1Watcher = ref.watch(DateTextProvider1);
               final date2Watcher = ref.watch(DateTextProvider2);
               final searchWatcher = ref.watch(SearchProvider);
-              final instaMarkerWatcher = ref.watch(instaMarkersProvider);
               return FabCircularMenu(
-                fabMargin: EdgeInsets.all(24),
+                fabMargin: const EdgeInsets.all(24),
                 fabColor: Colors.transparent,
                 ringColor: Colors.transparent,
                 fabChild: PointerInterceptor(
                   child: const FloatingActionButton(
                     backgroundColor: Colors.green,
                     onPressed: null,
-                    child: FaIcon(FontAwesomeIcons.bars),
+                    child: FaIcon(FontAwesomeIcons.bars, size: 24),
                   ),
                 ),
                 alignment: Alignment.bottomCenter,
@@ -415,16 +409,13 @@ class _HomeState extends State<Home> {
                   PointerInterceptor(
                     child: FloatingActionButton(
                       onPressed: () async {
-                        String tags = "";
-                        String near = "geocode:";
-                        bool tagSet = false;
+                        var near = "geocode:";
                         if (searchWatcher != "") {
-                          tags = searchWatcher;
                           near = " geocode:";
                         }
 
                         String url =
-                            "https://twitter.com/search?q=$tags$near${LatLngWatcher.lat},${LatLngWatcher.lng}";
+                          "https://twitter.com/search?q=${searchWatcher}$near${LatLngWatcher.latitude},${LatLngWatcher.longitude}";
                         if (int.tryParse(distanceWatcher) != null) {
                           if (int.parse(distanceWatcher) > 0) {
                             url = "$url,${distanceWatcher}km";
@@ -447,7 +438,6 @@ class _HomeState extends State<Home> {
                         }
 
                         await launchUrl(Uri.parse(url));
-                        print("clicked");
                       },
                       backgroundColor: Colors.blue,
                       child: const FaIcon(FontAwesomeIcons.twitter),
@@ -456,11 +446,9 @@ class _HomeState extends State<Home> {
                   PointerInterceptor(
                     child: FloatingActionButton(
                       onPressed: () async {
-                        String tags = "";
-                        String url =
-                            "https://map.snapchat.com/@${LatLngWatcher.lat},${LatLngWatcher.lng},15z";
+                        final url =
+                          "https://map.snapchat.com/@${LatLngWatcher.latitude},${LatLngWatcher.longitude},15z";
                         await launchUrl(Uri.parse(url));
-                        print("clicked");
                       },
                       backgroundColor: Colors.yellow,
                       child: const FaIcon(FontAwesomeIcons.snapchat),
@@ -470,12 +458,8 @@ class _HomeState extends State<Home> {
                     child: FloatingActionButton(
                       onPressed: () async {
                         String url =
-                            "https://www.instagram.com/location_search/?latitude=${LatLngWatcher.lat}&longitude=${LatLngWatcher.lng}";
+                          "https://www.instagram.com/location_search/?latitude=${LatLngWatcher.latitude}&longitude=${LatLngWatcher.longitude}";
                         _showDialog(context, ref, url);
-                        String tags = "";
-
-                        //await launchUrl(Uri.parse(url));
-                        print("clicked");
                       },
                       backgroundColor: Colors.pinkAccent,
                       child: const FaIcon(FontAwesomeIcons.instagram),
@@ -484,14 +468,10 @@ class _HomeState extends State<Home> {
                   PointerInterceptor(
                     child: FloatingActionButton(
                       onPressed: () async {
-                        String tags = "";
-                        bool tagSet = false;
-
-                        String url =
-                            "https://mattw.io/youtube-geofind/location?location=${LatLngWatcher.lat},${LatLngWatcher.lng}";
+                        var url =
+                          "https://mattw.io/youtube-geofind/location?location=${LatLngWatcher.latitude},${LatLngWatcher.longitude}";
                         if (searchWatcher != "") {
-                          tags = searchWatcher;
-                          url = "$url&keywords=$tags";
+                          url = "$url&keywords=$searchWatcher";
                         }
                         if (int.tryParse(distanceWatcher) != null) {
                           if (int.parse(distanceWatcher) > 0) {
@@ -504,7 +484,6 @@ class _HomeState extends State<Home> {
                         }
                         url = "$url&pages=5&doSearch=true";
                         await launchUrl(Uri.parse(url));
-                        print("clicked");
                       },
                       backgroundColor: Colors.red,
                       child: const FaIcon(FontAwesomeIcons.youtube),
@@ -513,13 +492,8 @@ class _HomeState extends State<Home> {
                   PointerInterceptor(
                     child: FloatingActionButton(
                       onPressed: () async {
-                        String tags = "";
-                        String near = "geo:";
-                        bool tagSet = false;
-
-                        if (isMediaWatcher) {
-                          tags = "${tags}has_screenshot:true ";
-                        }
+                        var near = "geo:";
+                        var tags = isMediaWatcher ? "has_screenshot:true " : "";
 
                         if (searchWatcher != "") {
                           tags = searchWatcher;
@@ -527,7 +501,7 @@ class _HomeState extends State<Home> {
                         }
 
                         String url =
-                            "https://www.shodan.io/search?query=$tags$near${LatLngWatcher.lat},${LatLngWatcher.lng}";
+                          "https://www.shodan.io/search?query=$tags$near${LatLngWatcher.latitude},${LatLngWatcher.longitude}";
                         if (int.tryParse(distanceWatcher) != null) {
                           if (int.parse(distanceWatcher) > 0) {
                             url = "$url,$distanceWatcher";
@@ -538,26 +512,7 @@ class _HomeState extends State<Home> {
                           url = "$url,10";
                         }
 
-                        /*if (DateTime.tryParse(date1Watcher) != null) {
-                          await initializeDateFormatting("en");
-                          String dateFormatted = DateFormat("dd/MM/yyyy")
-                              .format(DateTime.tryParse(
-                                  ref.read(DateTextProvider1.notifier).state)!)
-                              .toString();
-                  
-                          url = url + " after:" + dateFormatted;
-                        }
-                        if (DateTime.tryParse(date2Watcher) != null) {
-                          await initializeDateFormatting("en");
-                          String dateFormatted = DateFormat("dd/MM/yyyy")
-                              .format(DateTime.tryParse(
-                                  ref.read(DateTextProvider2.notifier).state)!)
-                              .toString();
-                          url = url + " before:" + dateFormatted;
-                        }*/
-
                         await launchUrl(Uri.parse(url));
-                        print("clicked");
                       },
                       backgroundColor: Colors.black26,
                       child: Image.asset("assets/shodan.png"),
@@ -573,37 +528,82 @@ class _HomeState extends State<Home> {
   }
 }
 
-final mapOptions = MapOptions()
-  ..zoom = 8
-  ..center = myLatlng
-  ..mapTypeId = 'hybrid';
+final MapController mapController = MapController();
 
-String htmlId = "7";
-
-final elem = DivElement()
-  ..id = htmlId
-  ..style.width = "100%"
-  ..style.height = "100%"
-  ..style.border = 'none';
-final map = GMap(elem, mapOptions);
-
-Marker marker = Marker(MarkerOptions()
-  ..position = myLatlng
-  ..map = map
-  ..title = 'Hello World!');
 Widget getMap(WidgetRef ref) {
-  // ignore: undefined_prefixed_name
-  ui.platformViewRegistry.registerViewFactory(htmlId, (int viewId) {
-    map.onClick.listen((mapsMouseEvent) {
-      myLatlng = mapsMouseEvent.latLng!;
-      ref.read(latLngProvider.notifier).state = mapsMouseEvent.latLng!;
-      marker.position = myLatlng;
-    });
+  final current = ref.watch(latLngProvider);
 
-    return elem;
-  });
+  // Build marker widgets: center marker + any instaMarkers from provider
+  final markerWatcher = ref.watch(instaMarkersProvider);
+  final List<Marker> markers = [
+    Marker(
+      width: 40,
+      height: 40,
+      point: latlng.LatLng(current.latitude, current.longitude),
+      child: const Icon(
+        Icons.location_on,
+        color: Colors.red,
+        size: 36,
+      ),
+    ),
+    ...markerWatcher,
+  ];
 
-  return HtmlElementView(viewType: htmlId);
+  return Stack(
+    children: [
+      FlutterMap(
+        mapController: mapController,
+        options: MapOptions(
+          initialCenter: current,
+          initialZoom: 8,
+          minZoom: 2,
+          maxZoom: 20,
+          onTap: (tapPosition, point) {
+            ref.read(latLngProvider.notifier).state = point;
+          },
+        ),
+        children: [
+          TileLayer(
+            urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            subdomains: const ['a', 'b', 'c'],
+          ),
+          MarkerLayer(markers: markers),
+        ],
+      ),
+      // Zoom controls positioned at top-right
+      Positioned(
+        top: 16,
+        right: 16,
+        child: Column(
+          children: [
+            FloatingActionButton(
+              mini: true,
+              onPressed: () {
+                mapController.move(
+                  mapController.camera.center,
+                  mapController.camera.zoom + 1,
+                );
+              },
+              backgroundColor: Colors.white,
+              child: const Icon(Icons.add, color: Colors.black),
+            ),
+            const SizedBox(height: 8),
+            FloatingActionButton(
+              mini: true,
+              onPressed: () {
+                mapController.move(
+                  mapController.camera.center,
+                  (mapController.camera.zoom - 1).clamp(2.0, 20.0),
+                );
+              },
+              backgroundColor: Colors.white,
+              child: const Icon(Icons.remove, color: Colors.black),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
 }
 
 Future<void> _launchInBrowser(Uri url) async {
@@ -617,150 +617,95 @@ Future<void> _launchInBrowser(Uri url) async {
 
 Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
   return showDialog(
-      context: context,
-      builder: (builder) {
-        return PointerInterceptor(
-          child: Wrap(
-            children: [
-              AlertDialog(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Instagram Nearby Search'),
-                content: Container(
-                    margin: const EdgeInsets.all(5),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text("1. You need to be signed in to instagram"),
-                        const Text(
-                            "2. Click instagram icon to open instagram."),
-                        const Text(
-                            "3. Copy the json text from the instagram page opened in new tab."),
-                        const Text("3. Click the Below Paste Button."),
-                        const Text("4. Click Submit"),
-                        Container(
-                          height: 5,
-                        ),
-                        Wrap(
-                          children: [
-                            Row(
-                              children: [
-                                ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.redAccent,
-                                    ),
-                                    onPressed: () async {
-                                      await _launchInBrowser(Uri.parse(url));
-                                    },
-                                    child: const FaIcon(
-                                        FontAwesomeIcons.instagram)),
-                                Container(
-                                  width: 2,
+    context: context,
+    builder: (builder) {
+      return PointerInterceptor(
+        child: AlertDialog(
+          title: const Text('Instagram Nearby Search'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("1. You need to be signed in to instagram"),
+                const Text("2. Click instagram icon to open instagram."),
+                const Text("3. Copy the json text from the instagram page opened in new tab."),
+                const Text("4. Click the Below Paste Button."),
+                const Text("5. Click Submit"),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                      onPressed: () async { await _launchInBrowser(Uri.parse(url)); },
+                      child: const FaIcon(FontAwesomeIcons.instagram),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
+                      onPressed: () {
+                        FlutterClipboard.paste().then((value) { instagramJson = value; });
+                      },
+                      child: const Text("Paste"),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                      onPressed: () {
+                        final List<Marker> newMarkers = [];
+                        dynamic data;
+                        try { data = jsonDecode(instagramJson); } catch (_) { data = null; }
+                        if (data != null && data["status"] == "ok") {
+                          final List<dynamic> venues = data["venues"];
+                          for (final venue in venues) {
+                            final double? lat = (venue["lat"] is num) ? (venue["lat"] as num).toDouble() : null;
+                            final double? lng = (venue["lng"] is num) ? (venue["lng"] as num).toDouble() : null;
+                            if (lat != null && lng != null && venue["external_id_source"] == "facebook_places") {
+                              final instaLatLng = latlng.LatLng(lat, lng);
+                              final markerUrl = "https://www.instagram.com/explore/locations/${venue["external_id"]}/";
+                              final instaMarker = Marker(
+                                width: 36,
+                                height: 36,
+                                point: instaLatLng,
+                                child: GestureDetector(
+                                  onTap: () async { if (markerUrl.isNotEmpty) await _launchInBrowser(Uri.parse(markerUrl)); },
+                                  child: const Icon(Icons.location_on, color: Colors.pink, size: 30),
                                 ),
-                                ElevatedButton(
-                                    onPressed: () {
-                                      FlutterClipboard.paste().then((value) {
-                                        // Do what ever you want with the value.
-                                        instagramJson = value;
-                                        print(instagramJson);
-                                      });
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.yellow,
-                                    ),
-                                    child: const Text("Paste")),
-                                Container(
-                                  width: 2,
-                                ),
-                                ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.green,
-                                    ),
-                                    onPressed: () {
-                                      instaMarkers.clear();
-                                      dynamic data = jsonDecode(instagramJson);
-                                      if (data["status"] == "ok") {
-                                        List<dynamic> venues = data["venues"];
-                                        for (dynamic venue in venues) {
-                                          double? lat = venue["lat"];
-                                          double? lng = venue["lng"];
-                                          if (lat != null && lng != null) {
-                                            LatLng instaLatLng =
-                                                LatLng(lat, lng);
-                                            String title = "";
-                                            String markerUrl = "";
-                                            if (venue["external_id_source"] ==
-                                                "facebook_places") {
-                                              markerUrl =
-                                                  "https://www.instagram.com/explore/locations/${venue["external_id"]}/";
-                                              Marker instaMarker =
-                                                  Marker(MarkerOptions()
-                                                    ..position = instaLatLng
-                                                    ..icon =
-                                                        "http://maps.google.com/mapfiles/ms/icons/pink-pushpin.png"
-                                                    ..map = map);
-                                              instaMarker.onClick
-                                                  .listen((event) async {
-                                                await _launchInBrowser(
-                                                    Uri.parse(markerUrl));
-                                              });
-                                              instaMarker.set("url", markerUrl);
-
-                                              String venueName =
-                                                  venue["name"] ?? "";
-                                              String venueAddress =
-                                                  venue["address"] ?? "";
-                                              instaMarker.title =
-                                                  "$venueName\n\n$venueAddress";
-                                              instaMarkers.add(instaMarker);
-                                            }
-                                          }
-                                        }
-                                      }
-                                      Navigator.of(context).maybePop();
-                                    },
-                                    child: const Text("Submit")),
-                                Container(
-                                  width: 2,
-                                )
-                              ],
-                            ),
-                          ],
-                        ),
-                        Container(
-                          height: 20,
-                        ),
-                        Row(children: [
-                          ElevatedButton(
-                              onPressed: () {
-                                for (Marker m in instaMarkers) {
-                                  m.map = null;
-                                }
-                                instaMarkers.clear();
-                                //instaMarkers.length = 0;
-                                Navigator.of(context).maybePop();
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                              ),
-                              child: const Text("Clear Markers")),
-                          Container(
-                            width: 2,
-                          ),
-                          ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.redAccent,
-                              ),
-                              onPressed: () {
-                                Navigator.of(context).maybePop();
-                              },
-                              child: const Text("Close"))
-                        ])
-                      ],
-                    )),
-              ),
-            ],
+                              );
+                              newMarkers.add(instaMarker);
+                            }
+                          }
+                        }
+                        ref.read(instaMarkersProvider.notifier).state = newMarkers;
+                        Navigator.of(context).maybePop();
+                      },
+                      child: const Text("Submit"),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                      onPressed: () {
+                        ref.read(instaMarkersProvider.notifier).state = [];
+                        Navigator.of(context).maybePop();
+                      },
+                      child: const Text("Clear Markers"),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                      onPressed: () { Navigator.of(context).maybePop(); },
+                      child: const Text("Close"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        );
-      });
+        ),
+      );
+    },
+  );
 }
