@@ -36,15 +36,16 @@
 <body>
   <script>
     window.addEventListener('load', function(ev) {
-      // Download main.dart.js using the newer loader API
-      _flutter.loader.load({
-        serviceWorker: { serviceWorkerVersion: serviceWorkerVersion }
-      }).then(function(engineInitializer) {
-        return engineInitializer.initializeEngine();
-      }).then(function(appRunner) {
-        appRunner.runApp();
-      }).catch(function(error) {
-        console.error('Flutter load error:', error);
+      _flutter.loader.loadEntrypoint({
+        serviceWorkerVersion: serviceWorkerVersion,
+        onEntrypointLoaded: function(engineInitializer) {
+          engineInitializer.initializeEngine().then(function(appRunner) {
+            appRunner.runApp();
+          });
+        },
+        onError: function(error) {
+          console.error('Flutter initialization error:', error);
+        }
       });
     });
   </script>
