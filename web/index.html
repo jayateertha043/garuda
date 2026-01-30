@@ -23,12 +23,12 @@
   <!-- Favicon -->
   <!--<link rel="icon" type="image/png" href="favicon.png"/>-->
 
-  <title>garuda</title>
+  <title>Garuda</title>
   <!--<link rel="manifest" href="manifest.json">-->
 
   <script>
     // The value below is injected by flutter build, do not touch.
-    var serviceWorkerVersion = "{{flutter_service_worker_version}}";
+    var serviceWorkerVersion = null;
   </script>
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
@@ -43,6 +43,8 @@
         return engineInitializer.initializeEngine();
       }).then(function(appRunner) {
         appRunner.runApp();
+      }).catch(function(error) {
+        console.error('Flutter load error:', error);
       });
     });
   </script>
