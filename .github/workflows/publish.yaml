@@ -10,7 +10,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+      
+      - name: Enable web
+        run: flutter config --enable-web
+      
+      - name: Get dependencies
+        run: flutter pub get
+      
+      - name: Build web release
+        run: flutter build web --release --base-href /garuda/
+      
       - uses: bluefireteam/flutter-gh-pages@v7
+        with:
+          webPath: build/web
+          branch: gh-pages
