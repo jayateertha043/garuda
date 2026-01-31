@@ -2,10 +2,12 @@ import 'dart:convert';
 
 import 'package:clipboard/clipboard.dart';
 import 'package:fab_circular_menu/fab_circular_menu.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart' as latlng;
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -84,33 +86,199 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: Stack(
-        //alignment: Alignment.topCenter,
-        children: [
-          Consumer(builder: (context, ref, child) {
-            return getMap(ref);
-          }),
-          Column(
-            //mainAxisAlignment: MainAxisAlignment.center,
+    return Scaffold(
+      key: _scaffoldKey,
+      drawer: Drawer(
+        child: Container(
+          color: Colors.grey[900],
+          child: ListView(
+            padding: EdgeInsets.zero,
             children: [
-              Container(
-                height: context.isMobile ? 55 : 25,
+              DrawerHeader(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.orange, Colors.deepOrange],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Transform.flip(
+                      flipX: true,
+                      child: const Text(
+                        '🦅',
+                        style: TextStyle(fontSize: 50),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'GARUDA',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 10,
+                            color: Colors.black.withOpacity(0.5),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              Container(
-                alignment: Alignment.topCenter,
-                width: MediaQuery.of(context).size.width * 0.6,
-                height: context.isMobile
-                    ? MediaQuery.of(context).size.height * 0.04
-                    : MediaQuery.of(context).size.height * 0.10,
+              ListTile(
+                leading: const Icon(Icons.directions_car, color: Colors.orange),
+                title: const Text(
+                  'RC Vehicle Data',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showRCVehicleDialog(context);
+                },
+              ),
+              const Divider(color: Colors.grey),
+            ],
+          ),
+        ),
+      ),
+      body: Material(
+        child: Stack(
+          //alignment: Alignment.topCenter,
+          children: [
+            Consumer(builder: (context, ref, child) {
+              return getMap(ref);
+            }),
+            // Hamburger menu button - top left
+            Positioned(
+              top: context.isMobile ? 40 : 15,
+              left: 10,
+              child: PointerInterceptor(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.menu, color: Colors.orange),
+                    onPressed: () {
+                      _scaffoldKey.currentState?.openDrawer();
+                    },
+                  ),
+                ),
+              ),
+            ),
+            // GARUDA title - top center
+            Positioned(
+              top: context.isMobile ? 42 : 12,
+              left: 0,
+              right: 0,
+              child: Center(
                 child: PointerInterceptor(
-                    child: Align(
-                  alignment: Alignment.center,
-                  child: Container(child: Consumer(
-                    builder: (context, ref, child) {
-                      return TextField(
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.orange.withOpacity(0.7),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                        BoxShadow(
+                          color: Colors.orange.withOpacity(0.15),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Transform.flip(
+                          flipX: true,
+                          child: Text(
+                            '🦅',
+                            style: TextStyle(
+                              fontSize: context.isMobile ? 16 : 20,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'GARUDA',
+                          style: TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: context.isMobile ? 11 : 15,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.orange,
+                            letterSpacing: 4,
+                            shadows: const [
+                              Shadow(
+                                blurRadius: 8,
+                                color: Colors.orange,
+                                offset: Offset(0, 0),
+                              ),
+                              Shadow(
+                                blurRadius: 16,
+                                color: Colors.deepOrange,
+                                offset: Offset(0, 0),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '🦅',
+                          style: TextStyle(
+                            fontSize: context.isMobile ? 16 : 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Column(
+              //mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  height: context.isMobile ? 95 : 70,
+                ),
+                Container(
+                  alignment: Alignment.topCenter,
+                  width: MediaQuery.of(context).size.width * 0.6,
+                  height: context.isMobile
+                      ? MediaQuery.of(context).size.height * 0.035
+                      : MediaQuery.of(context).size.height * 0.075,
+                  child: PointerInterceptor(
+                      child: Align(
+                    alignment: Alignment.center,
+                    child: Container(child: Consumer(
+                      builder: (context, ref, child) {
+                        return TextField(
                         minLines: null,
                         maxLines: null,
                         expands: true,
@@ -140,7 +308,7 @@ class _HomeState extends State<Home> {
             children: [
               Container(
                 height: context.isMobile
-                    ? MediaQuery.of(context).size.height * 0.13
+                    ? MediaQuery.of(context).size.height * 0.18
                     : MediaQuery.of(context).size.height * 0.2,
               ),
               Container(
@@ -524,7 +692,7 @@ class _HomeState extends State<Home> {
           )
         ],
       ),
-    );
+    ));
   }
 }
 
@@ -540,10 +708,9 @@ Widget getMap(WidgetRef ref) {
       width: 40,
       height: 40,
       point: latlng.LatLng(current.latitude, current.longitude),
-      child: const Icon(
-        Icons.location_on,
-        color: Colors.red,
-        size: 36,
+      child: const Text(
+        '🦅',
+        style: TextStyle(fontSize: 30),
       ),
     ),
     ...markerWatcher,
@@ -668,7 +835,13 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
                                 point: instaLatLng,
                                 child: GestureDetector(
                                   onTap: () async { if (markerUrl.isNotEmpty) await _launchInBrowser(Uri.parse(markerUrl)); },
-                                  child: const Icon(Icons.location_on, color: Colors.pink, size: 30),
+                                  child: Transform.flip(
+                                    flipX: true,
+                                    child: const Text(
+                                      '🦅',
+                                      style: TextStyle(fontSize: 26),
+                                    ),
+                                  ),
                                 ),
                               );
                               newMarkers.add(instaMarker);
@@ -708,4 +881,262 @@ Future<void> _showDialog(BuildContext context, WidgetRef ref, String url) {
       );
     },
   );
+}
+
+Future<void> _showRCVehicleDialog(BuildContext context) {
+  final rcController = TextEditingController();
+  final tokenController = TextEditingController();
+  
+  return showDialog(
+    context: context,
+    builder: (builder) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          bool isLoading = false;
+          Map<String, dynamic>? vehicleData;
+          String? errorMessage;
+          
+          return PointerInterceptor(
+            child: AlertDialog(
+              title: Row(
+                children: [
+                  Transform.flip(
+                    flipX: true,
+                    child: const Text('🦅', style: TextStyle(fontSize: 24)),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text('RC Vehicle Data'),
+                ],
+              ),
+              content: _RCVehicleDialogContent(
+                rcController: rcController,
+                tokenController: tokenController,
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+class _RCVehicleDialogContent extends StatefulWidget {
+  final TextEditingController rcController;
+  final TextEditingController tokenController;
+
+  const _RCVehicleDialogContent({
+    required this.rcController,
+    required this.tokenController,
+  });
+
+  @override
+  State<_RCVehicleDialogContent> createState() => _RCVehicleDialogContentState();
+}
+
+class _RCVehicleDialogContentState extends State<_RCVehicleDialogContent> {
+  bool isLoading = false;
+  Map<String, dynamic>? vehicleData;
+  String? errorMessage;
+  final ScrollController _verticalScrollController = ScrollController();
+  final ScrollController _horizontalScrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _verticalScrollController.dispose();
+    _horizontalScrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchVehicleData() async {
+    final rcNumber = widget.rcController.text.trim();
+    final token = widget.tokenController.text.trim();
+
+    if (rcNumber.isEmpty || token.isEmpty) {
+      setState(() {
+        errorMessage = 'Please enter both RC Number and Token';
+      });
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+      vehicleData = null;
+    });
+
+    try {
+      final url = Uri.parse(
+        'https://garuda-osint-bot.vercel.app/vehicle?rc_number=$rcNumber&token=$token',
+      );
+      final response = await http.get(url);
+
+      if (response.statusCode < 300) {
+        final List<dynamic> data = jsonDecode(response.body);
+        if (data.isNotEmpty && data[0]['status'] == 'completed') {
+          setState(() {
+            vehicleData = data[0]['result']['extraction_output'];
+            isLoading = false;
+          });
+        } else {
+          setState(() {
+            errorMessage = 'Failed to retrieve vehicle data';
+            isLoading = false;
+          });
+        }
+      } else {
+        setState(() {
+          errorMessage = 'An error occurred. Please try again.';
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = 'An error occurred. Please try again.';
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.8,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: widget.rcController,
+              decoration: InputDecoration(
+                labelText: 'RC Number',
+                hintText: 'Enter vehicle RC number',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: widget.tokenController,
+              decoration: InputDecoration(
+                labelText: 'Token',
+                hintText: 'Enter your token',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              ),
+              obscureText: true,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  onPressed: isLoading ? null : _fetchVehicleData,
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text('Submit'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  child: const Text('Close'),
+                ),
+              ],
+            ),
+            if (errorMessage != null) ...[
+              const SizedBox(height: 16),
+              Text(
+                errorMessage!,
+                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              ),
+            ],
+            if (vehicleData != null) ...[
+              const SizedBox(height: 16),
+              const Text(
+                'Vehicle Information:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.4,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ScrollConfiguration(
+                  behavior: ScrollConfiguration.of(context).copyWith(
+                    dragDevices: {
+                      PointerDeviceKind.touch,
+                      PointerDeviceKind.mouse,
+                      PointerDeviceKind.trackpad,
+                    },
+                    scrollbars: true,
+                  ),
+                  child: Scrollbar(
+                    controller: _verticalScrollController,
+                    thumbVisibility: true,
+                    interactive: true,
+                    trackVisibility: true,
+                    child: SingleChildScrollView(
+                      controller: _verticalScrollController,
+                      scrollDirection: Axis.vertical,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Scrollbar(
+                        controller: _horizontalScrollController,
+                        thumbVisibility: true,
+                        interactive: true,
+                        trackVisibility: true,
+                        notificationPredicate: (notification) => notification.depth == 0,
+                        child: SingleChildScrollView(
+                          controller: _horizontalScrollController,
+                          scrollDirection: Axis.horizontal,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: DataTable(
+                            columns: const [
+                              DataColumn(label: Text('Field', style: TextStyle(fontWeight: FontWeight.bold))),
+                              DataColumn(label: Text('Value', style: TextStyle(fontWeight: FontWeight.bold))),
+                            ],
+                            rows: vehicleData!.entries.map((entry) {
+                              return DataRow(cells: [
+                                DataCell(SelectableText(_formatFieldName(entry.key))),
+                                DataCell(SelectableText(entry.value?.toString() ?? 'N/A')),
+                              ]);
+                            }).toList(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatFieldName(String fieldName) {
+    return fieldName
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map((word) => word.isNotEmpty 
+            ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
+            : '')
+        .join(' ');
+  }
 }

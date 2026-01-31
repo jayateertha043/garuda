@@ -50,6 +50,7 @@ dependencies:
 
   flutter_map: any
   latlong2: any
+  http: ^1.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
